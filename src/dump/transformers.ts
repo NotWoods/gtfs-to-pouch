@@ -5,16 +5,21 @@ interface Doc {
 	[prop: string]: string
 }
 
-interface DocURI {
-	(str: string): any
+interface DocURI<T = any> {
+	(str: string): T
 	(obj: object): string
-	(str: string, obj: object): string
+	(str: string, obj: T): string
 }
 
-const stopTime: DocURI = route('time/:trip_id/:stop_id');
-const frequency: DocURI = route('frequency/:trip_id/:start_time/:end_time');
-const transfer: DocURI = route('transfer/:from_stop_id/:to_stop_id');
-const calendarDate: DocURI = route('exception/:service_id/:date');
+type StopTime = { trip_id: string, stop_id: string, stop_sequence: string };
+type Frequency = { trip_id: string, start_time: string, end_time: string };
+type Transfer = { trip_id: string, stop_id: string };
+type CalendarDate = { trip_id: string, stop_id: string };
+
+export const stopTime: DocURI<StopTime> = route('time/:trip_id/:stop_id/:stop_sequence');
+export const frequency: DocURI<Frequency> = route('frequency/:trip_id/:start_time/:end_time');
+export const transfer: DocURI<Transfer> = route('transfer/:from_stop_id/:to_stop_id');
+export const calendarDate: DocURI<CalendarDate> = route('exception/:service_id/:date');
 
 interface IDGetters {
 	[name: string]: (doc: Doc) => string
