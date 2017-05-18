@@ -2,7 +2,7 @@ import { createReadStream, createWriteStream } from 'fs';
 import { basename, join } from 'path';
 import parseCSVFile from 'csv-to-pouch';
 import { exists } from './fs';
-import { idGetters } from './transformers';
+import { transformers } from './transformers';
 import PouchDB, { ReplicatingDatabase } from './pouchdb';
 
 /**
@@ -30,8 +30,8 @@ export default async function createOutputDump(
 	const outputPath = join(outputDir, `${name}.ndjson`);
 
 	// Ensure the name is recognized by the program
-	if (typeof idGetters[name] !== 'function') {
-		throw new TypeError(`No ID getter exists for ${name}`);
+	if (typeof transformers[name] !== 'function') {
+		throw new TypeError(`No transformer exists for ${name}`);
 	}
 
 	// Create a PouchDB database
@@ -42,7 +42,7 @@ export default async function createOutputDump(
 	}
 
 	// Parse the CSV text file, then dump the updated database to the output path
-	await parseCSVFile(db, input, doc => { doc._id = idGetters[name](doc); });
+	await parseCSVFile(db, input, transformers[name]);
 	await db.dump(createWriteStream(outputPath));
 
 	await db.destroy();
