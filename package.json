@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Converts a GTFS file to PouchDB dumpfiles",
   "repository": "NotWoods/gtfs-to-pouch",
-  "main": "dist/main.js",
-  "module": "es/main.js",
-  "bin": "./dist/cmd.js",
+  "main": "dist/dump/main.js",
+  "module": "es/dump/main.js",
+  "bin": "./dist/dump/cmd.js",
   "devDependencies": {
     "@types/denodeify": "^1.2.30",
     "@types/jszip": "0.0.32",

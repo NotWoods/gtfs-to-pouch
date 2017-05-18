@@ -1,0 +1,7 @@
+{
+	"files.exclude": {
+		"dist": true,
+		"es": true
+	},
+	"terminal.integrated.shell.windows": "C:\\WINDOWS\\Sysnative\\WindowsPowerShell\\v1.0\\powershell.exe"
+}
