@@ -1,4 +1,5 @@
 import { Stop } from '../interfaces';
+import { extractDocs } from './utils'
 
 interface LatLng {
 	lat: number
@@ -55,5 +56,30 @@ export function stopAddress(
 			console.error(err);
 			return '';
 		}
+	}
+}
+
+export function nearestStop(
+	db: PouchDB.Database<Stop>
+): (pos: LatLng) => Promise<Stop> {
+	return async pos => {
+		let closestDistanceSqr = Number.POSITIVE_INFINITY;
+		let closestStop: Stop | null = null;
+
+		const stops = extractDocs(await db.allDocs({ include_docs: true }));
+		for (const stop of stops) {
+			// Use pythagorean formula to compute distance.
+			// Use squared distances to skip calculating the square root.
+			const aSqr = Math.pow(pos.lat - stop.stop_lat, 2);
+			const bSqr = Math.pow(pos.lng - stop.stop_lon, 2);
+
+			const distanceSqr = aSqr + bSqr;
+			if (distanceSqr < closestDistanceSqr) {
+				closestStop = stop;
+				closestDistanceSqr = distanceSqr;
+			}
+		}
+
+		return closestStop;
 	}
 }

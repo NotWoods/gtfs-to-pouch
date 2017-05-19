@@ -65,10 +65,17 @@ export function nextStopFromList(
 	stopTimes: StopTime[]
 ): (now?: moment.Moment) => Promise<StopTime|null> {
 	return async (now = moment()) => {
+		const nowTime = moment(0).set({
+			hour: now.hour(),
+			minute: now.minute(),
+			second: now.second(),
+			millisecond: now.millisecond(),
+		})
+
 		let closestStop: StopTime|null = null;
 		for (const stopTime of stopTimes) {
 			const time = moment(stopTime.arrival_time, 'H:mm:ss');
-			if (time < now) continue;
+			if (time < nowTime) continue;
 
 			if (!closestStop) closestStop = stopTime;
 			else if (time < moment(closestStop.arrival_time)) closestStop = stopTime;

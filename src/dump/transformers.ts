@@ -77,8 +77,8 @@ export const transformers: Transformers = {
 		entry.sunday = Boolean(doc.sunday);
 		return entry;
 	},
-	fare_attributes(doc): GTFS.FareAttributes {
-		const entry: GTFS.FareAttributes = <any> doc;
+	fare_attributes(doc): GTFS.FareAttribute {
+		const entry: GTFS.FareAttribute = <any> doc;
 		entry._id = doc.fare_id;
 		entry.payment_method = toInt(doc.payment_method);
 		entry.transfers = toInt(doc.payment_method) || undefined;

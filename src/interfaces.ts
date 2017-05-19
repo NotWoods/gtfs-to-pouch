@@ -52,7 +52,7 @@ export enum Transfers {
 	Twice = 2,
 }
 
-export interface FareAttributes {
+export interface FareAttribute {
 	_id: string
 	fare_id: string
 	price: string
