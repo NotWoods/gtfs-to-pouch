@@ -1,18 +1,8 @@
 import * as moment from 'moment';
 import { trip } from '../dump/transformers';
 import { Trip, StopTime, Calendar } from '../interfaces';
-import { getDays } from './calendar';
+import { getDays, Weekdays } from './calendar';
 import { extractDocs, removeItem } from './utils';
-
-export enum Weekdays {
-	Sunday = 0,
-	Monday = 1,
-	Tuesday = 2,
-	Wednesday = 3,
-	Thursday = 4,
-	Friday = 5,
-	Saturday = 6
-}
 
 interface TripDetails {
 	name: string
@@ -28,23 +18,6 @@ interface TripDetails {
  */
 export function tripName(trip: Trip): string {
 	return trip.trip_short_name || trip.trip_headsign || '';
-}
-
-/**
- * Get the stop times associated with a trip
- */
-export function getTripSchedule(
-	stopTimeDB: PouchDB.Database<StopTime>
-): (trip_id: string) => Promise<StopTime[]> {
-	return async tripID => {
-		const times = await stopTimeDB.allDocs({
-			include_docs: true,
-			startkey: `time/${tripID}/`,
-			endkey: `time/${tripID}/\uffff`,
-		});
-
-		return extractDocs(times);
-	}
 }
 
 /**

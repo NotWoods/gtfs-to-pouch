@@ -1,4 +1,6 @@
-import { StopTime } from '../interfaces';
+import * as moment from 'moment';
+import { trip } from '../dump/transformers'
+import { StopTime, Trip } from '../interfaces';
 import { extractDocs } from './utils';
 
 /**
@@ -52,5 +54,57 @@ export function firstAndLastStop(
 			first_stop_id: first.stop_id,
 			last_stop_id: last.stop_id,
 		};
+	}
+}
+
+/**
+ * Returns the next stop that will be reached based on a
+ * list of stop times
+ */
+export function nextStopFromList(
+	stopTimes: StopTime[]
+): (now?: moment.Moment) => Promise<StopTime|null> {
+	return async (now = moment()) => {
+		let closestStop: StopTime|null = null;
+		for (const stopTime of stopTimes) {
+			const time = moment(stopTime.arrival_time, 'H:mm:ss');
+			if (time < now) continue;
+
+			if (!closestStop) closestStop = stopTime;
+			else if (time < moment(closestStop.arrival_time)) closestStop = stopTime;
+		}
+
+		return closestStop;
+	}
+}
+
+export function nextStopOfTrip(
+	db: PouchDB.Database<StopTime>
+): (trip_id: string, now?: moment.Moment) => Promise<StopTime|null> {
+	return async (tripID, now) => {
+		const list = await getTripSchedule(db)(tripID);
+		return nextStopFromList(list)(now);
+	}
+}
+
+export function nextStopOfRoute(
+	tripDB: PouchDB.Database<Trip>,
+	stopTimeDB: PouchDB.Database<StopTime>,
+): (route_id: string, now?: moment.Moment) => Promise<StopTime|null> {
+	return async (routeID, now) => {
+		const allTrips = await tripDB.allDocs();
+
+		const desiredTrips = allTrips.rows
+			.filter(row => trip(row.id).route_id === routeID)
+			.map(row => trip(row.id).trip_id);
+
+		const getSchedule = getTripSchedule(stopTimeDB);
+		let schedules: StopTime[] = [];
+		await Promise.all(desiredTrips.map(async trip_id => {
+			const subSchedule = await getSchedule(trip_id);
+			schedules.push(...subSchedule);
+		}));
+
+		return nextStopFromList(schedules)(now);
 	}
 }
