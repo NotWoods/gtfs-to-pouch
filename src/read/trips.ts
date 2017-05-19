@@ -2,6 +2,7 @@ import * as moment from 'moment';
 import { trip } from '../dump/transformers';
 import { Trip, StopTime, Calendar } from '../interfaces';
 import { getDays, Weekdays } from './calendar';
+import { getTripSchedule } from './stop_times';
 import { extractDocs, removeItem } from './utils';
 
 interface TripDetails {

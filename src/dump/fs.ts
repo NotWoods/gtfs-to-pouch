@@ -1,4 +1,4 @@
-import denodeify from 'denodeify';
+import * as denodeify from 'denodeify';
 import { stat, readdir, readFile, Stats } from 'fs';
 
 interface ReadFileAsync {
@@ -8,7 +8,7 @@ interface ReadFileAsync {
 
 const statAsync: (path: string) => Promise<Stats> = denodeify(stat);
 const readdirAsync: (path: string, encoding?: string) => Promise<string[]> = denodeify(readdir);
-const readFileAsync: ReadFileAsync = denodeify(readFile);
+const readFileAsync: ReadFileAsync = <any> denodeify(readFile);
 
 export {
 	statAsync as stat,

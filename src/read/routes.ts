@@ -1,7 +1,7 @@
 import { stopTime, trip } from '../dump/transformers';
 import { Route, StopTime, Trip, Calendar } from '../interfaces';
-import { allTripsForRoute, Weekdays } from './trips'
-import { getDays } from './calendar';
+import { allTripsForRoute } from './trips'
+import { getDays, Weekdays } from './calendar';
 import { extractDocs } from './utils'
 
 export function getRouteName(route: Route): string {
