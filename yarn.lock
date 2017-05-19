@@ -14,6 +14,12 @@
   version "0.0.32"
   resolved "https://registry.yarnpkg.com/@types/jszip/-/jszip-0.0.32.tgz#08f717c3fa3daa3feda6fbba9e12d90783c932ab"
 
+"@types/moment-range@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/moment-range/-/moment-range-3.0.0.tgz#2d7e611c5ea34990611561c0a2f4a8455674bc19"
+  dependencies:
+    moment "^2.18.1"
+
 "@types/node@*", "@types/node@^7.0.7":
   version "7.0.18"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.18.tgz#cd67f27d3dc0cfb746f0bdd5e086c4c5d55be173"
@@ -177,6 +183,12 @@ csv-to-pouch@^2.0.3:
     minimist "^1.2.0"
     stream-batch "^1.0.0"
 
+d@1:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/d/-/d-1.0.0.tgz#754bb5bfe55451da69a58b94d45f4c5b0462d58f"
+  dependencies:
+    es5-ext "^0.10.9"
+
 deferred-leveldown@~1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/deferred-leveldown/-/deferred-leveldown-1.2.1.tgz#5d25c3310f5fe909946f6240dc9f90dd109a71ef"
@@ -201,9 +213,31 @@ errno@~0.1.1:
   dependencies:
     prr "~0.0.0"
 
+es5-ext@^0.10.14, es5-ext@^0.10.9, es5-ext@~0.10.14:
+  version "0.10.20"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.20.tgz#72a9b4fd5832797ba1bb65dceb2e25c04241c492"
+  dependencies:
+    es6-iterator "2"
+    es6-symbol "~3.1"
+
+es6-iterator@2:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/es6-iterator/-/es6-iterator-2.0.1.tgz#8e319c9f0453bf575d374940a655920e59ca5512"
+  dependencies:
+    d "1"
+    es5-ext "^0.10.14"
+    es6-symbol "^3.1"
+
 es6-promise@~3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-3.0.2.tgz#010d5858423a5f118979665f46486a95c6ee2bb6"
+
+es6-symbol@^3.1, es6-symbol@^3.1.0, es6-symbol@~3.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/es6-symbol/-/es6-symbol-3.1.1.tgz#bf00ef4fdab6ba1b46ecb7b629b4c7ed5715cc77"
+  dependencies:
+    d "1"
+    es5-ext "~0.10.14"
 
 functional-red-black-tree@^1.0.1:
   version "1.0.1"
@@ -350,6 +384,16 @@ memdown@1.2.4:
 minimist@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
+
+moment-range@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/moment-range/-/moment-range-3.0.3.tgz#f7a1567c73228f317469cb33148ea996f79ccb9a"
+  dependencies:
+    es6-symbol "^3.1.0"
+
+moment@^2.18.1:
+  version "2.18.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
 ndjson@^1.4.3:
   version "1.5.0"

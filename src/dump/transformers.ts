@@ -5,15 +5,17 @@ function toInt(n: string) { return parseInt(n, 10); }
 
 interface DocURI<T = any> {
 	(str: string): T
-	(obj: object): string
+	(obj: T): string
 	(str: string, obj: T): string
 }
 
-type StopTime = { trip_id: string, stop_id: string, stop_sequence: string };
+type Trip = { trip_id: string, route_id: string }
+type StopTime = { trip_id: string, stop_id: string, stop_sequence: string | number };
 type Frequency = { trip_id: string, start_time: string, end_time: string };
-type Transfer = { trip_id: string, stop_id: string };
-type CalendarDate = { trip_id: string, stop_id: string };
+type Transfer = { from_stop_id: string, to_stop_id: string };
+type CalendarDate = { service_id: string, date: string };
 
+export const trip: DocURI<Trip> = route('trip/:route_id/:trip_id');
 export const stopTime: DocURI<StopTime> = route('time/:trip_id/:stop_id/:stop_sequence');
 export const frequency: DocURI<Frequency> = route('frequency/:trip_id/:start_time/:end_time');
 export const transfer: DocURI<Transfer> = route('transfer/:from_stop_id/:to_stop_id');
@@ -45,13 +47,13 @@ export const transformers: Transformers = {
 		return route;
 	},
 	trips(doc): GTFS.Trip {
-		const trip: GTFS.Trip = <any> doc;
-		trip._id = doc.trip_id;
-		if (doc.direction_id) trip.direction_id = Boolean(doc.direction_id);
+		const entry: GTFS.Trip = <any> doc;
+		entry._id = trip(entry);
+		if (doc.direction_id) entry.direction_id = Boolean(doc.direction_id);
 		if (doc.wheelchair_accessible)
-			trip.wheelchair_accessible = toInt(doc.wheelchair_accessible);
-		if (doc.bikes_allowed) trip.bikes_allowed = toInt(doc.bikes_allowed);
-		return trip;
+			entry.wheelchair_accessible = toInt(doc.wheelchair_accessible);
+		if (doc.bikes_allowed) entry.bikes_allowed = toInt(doc.bikes_allowed);
+		return entry;
 	},
 	stop_times(doc): GTFS.StopTime {
 		const time: GTFS.StopTime = <any> doc;

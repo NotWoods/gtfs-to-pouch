@@ -1,57 +1,89 @@
 import { stopTime, trip } from '../dump/transformers';
+import { Route, StopTime, Trip, Calendar } from '../interfaces';
+import { allTripsForRoute, Weekdays } from './trips'
+import { getDays } from './calendar';
+import { extractDocs } from './utils'
 
-interface Route {
-
+export function getRouteName(route: Route): string {
+	return route.route_long_name || route.route_short_name;
 }
 
-interface Trip {
-
-}
-
-interface StopTime {
-
-}
-
-interface TripSummary {
-	dates: Set<number>,
-	heading: string,
-	trip_id: string
-}
-
-export function listRoutes(db: PouchDB.Database<Route>): () => Promise<Route[]> {
+/**
+ * Get route summaries for every single route
+ */
+export function listRoutes(
+	db: PouchDB.Database<Route>
+): () => Promise<Route[]> {
 	return async () => {
 		const docs = await db.allDocs({ include_docs: true });
-		return docs.rows.map(row => row.doc as Route);
+		return extractDocs(docs);
 	}
 }
 
-export function connectedRoutes(stopTimesDB: PouchDB.Database<StopTime>, tripsDB: PouchDB.Database<Trip>) {
-	return async (stopID: string) => {
+/**
+ * Get every route that connects to a given stop
+ */
+export function connectedRoutes(
+	stopTimesDB: PouchDB.Database<StopTime>,
+	tripsDB: PouchDB.Database<Trip>,
+	routesDB: PouchDB.Database<Route>,
+): (stop_id: string) => Promise<Route[]> {
+	return async stopID => {
+		const allTripsReady = tripsDB.allDocs();
+
+		// Get trips that pass the given stop
 		const stopTimes = await stopTimesDB.allDocs();
 		const tripIDs = new Set(stopTimes.rows
 			.map(row => stopTime(row.id))
 			.filter(data => data.stop_id === stopID)
 			.map(data => data.trip_id));
 
+		const allTrips = await allTripsReady;
+		const desiredIDs = allTrips.rows
+			.map(row => row.id)
+			.filter(id => tripIDs.has(trip(id).trip_id));
 		const trips = await tripsDB.allDocs({
-			keys: Array.from(tripIDs),
-			include_docs: true
+			include_docs: true,
+			keys: desiredIDs,
 		});
 
-		trips.rows
+		// Get routes that those trips belong to
+		const routeIDs = new Set(trips.rows
 			.filter(row => !row.value.deleted)
-			.map(row => row.doc.route_id)
+			.map(row => `route/${(row.doc as Trip).route_id}`));
+
+		const routes = await routesDB.allDocs({
+			keys: Array.from(routeIDs),
+			include_docs: true,
+		});
+
+		return extractDocs(routes);
 	}
 }
 
-export function routeDetails(db: PouchDB.Database<Route>) {
-	return async (route_id: string) => {
-		const route = await db.get(`route/${route_id}`);
+interface RouteDetails {
+	route_data: Route
+	trips: Trip[]
+	dates: Set<Weekdays>
+}
 
-		return {
-			route_data: route,
-			trips: [] as TripSummary[],
-			dates: new Set<number>(),
-		};
+export function routeDetails(
+	routeDB: PouchDB.Database<Route>,
+	tripDB: PouchDB.Database<Trip>,
+	calendarDB: PouchDB.Database<Calendar>,
+): (route_id: string) => Promise<RouteDetails> {
+	return async routeID => {
+		const [route_data, trips] = await Promise.all([
+			routeDB.get(`route/${routeID}`),
+			allTripsForRoute(tripDB)(routeID),
+		]);
+
+		const dates = new Set<Weekdays>();
+		await Promise.all(trips.map(async trip => {
+			const subDates = await getDays(calendarDB)(trip.service_id);
+			subDates.forEach(dates.add, dates);
+		}));
+
+		return { route_data, trips, dates };
 	}
 }
