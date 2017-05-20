@@ -3,17 +3,17 @@ import * as GTFS from '../interfaces';
 
 function toInt(n: string) { return parseInt(n, 10); }
 
-interface DocURI<T = any> {
+export interface DocURI<T = any> {
 	(str: string): T
 	(obj: T): string
 	(str: string, obj: T): string
 }
 
-type Trip = { trip_id: string, route_id: string }
-type StopTime = { trip_id: string, stop_id: string, stop_sequence: string | number };
-type Frequency = { trip_id: string, start_time: string, end_time: string };
-type Transfer = { from_stop_id: string, to_stop_id: string };
-type CalendarDate = { service_id: string, date: string };
+export type Trip = { trip_id: string, route_id: string }
+export type StopTime = { trip_id: string, stop_id: string, stop_sequence: string | number };
+export type Frequency = { trip_id: string, start_time: string, end_time: string };
+export type Transfer = { from_stop_id: string, to_stop_id: string };
+export type CalendarDate = { service_id: string, date: string };
 
 export const trip: DocURI<Trip> = route('trip/:route_id/:trip_id');
 export const stopTime: DocURI<StopTime> = route('time/:trip_id/:stop_id/:stop_sequence');
@@ -21,7 +21,7 @@ export const frequency: DocURI<Frequency> = route('frequency/:trip_id/:start_tim
 export const transfer: DocURI<Transfer> = route('transfer/:from_stop_id/:to_stop_id');
 export const calendarDate: DocURI<CalendarDate> = route('exception/:service_id/:date');
 
-interface Transformers {
+export interface Transformers {
 	[name: string]: (row: { [prop: string]: string }) => object & { _id: string }
 }
 

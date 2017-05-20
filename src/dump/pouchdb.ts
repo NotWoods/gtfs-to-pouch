@@ -4,15 +4,11 @@ import * as memoryAdapter from 'pouchdb-adapter-memory'
 
 PouchDB.plugin(memoryAdapter);
 PouchDB.plugin(plugin);
-PouchDB.adapter('writableStream', adapters.writableStream);
-
-interface RepResult {
-	ok: true
-}
+(PouchDB as any).adapter('writableStream', adapters.writableStream);
 
 export interface ReplicatingDatabase<T> extends PouchDB.Database<T> {
-	load(rs: NodeJS.ReadableStream): Promise<RepResult>
-	dump(ws: NodeJS.WritableStream): Promise<RepResult>
+	load(rs: NodeJS.ReadableStream): Promise<{ ok: true }>
+	dump(ws: NodeJS.WritableStream): Promise<{ ok: true }>
 }
 
 export default PouchDB;

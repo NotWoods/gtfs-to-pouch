@@ -1,6 +1,6 @@
 {
   "name": "gtfs-to-pouch",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Converts a GTFS file to PouchDB dumpfiles",
   "repository": "NotWoods/gtfs-to-pouch",
   "main": "dist/dump/main.js",

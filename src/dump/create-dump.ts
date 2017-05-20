@@ -23,7 +23,7 @@ export default async function createOutputDump(
 		input = createReadStream(file);
 	} else {
 		name = basename(file.name);
-		input = file.nodeStream('nodebuffer');
+		input = (file as any).nodeStream('nodebuffer');
 	}
 
 	// Save the resulting file inside the output directory as a ndjson file

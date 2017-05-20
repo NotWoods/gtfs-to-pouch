@@ -61,7 +61,7 @@ export function connectedRoutes(
 	}
 }
 
-interface RouteDetails {
+export interface RouteDetails {
 	route_data: Route
 	trips: Trip[]
 	dates: Set<Weekdays>

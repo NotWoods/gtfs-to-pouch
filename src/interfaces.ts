@@ -11,7 +11,7 @@ export interface Agency {
 }
 
 
-type DateString = string;
+export type DateString = string;
 
 export interface Calendar {
 	_id: string
@@ -84,7 +84,7 @@ export interface FeedInfo {
 }
 
 
-type TimeString = string;
+export type TimeString = string;
 
 export interface Frequency {
 	_id: string
@@ -107,7 +107,7 @@ export enum RouteType {
 	Funicular = 7
 }
 
-type HexCode = string
+export type HexCode = string
 
 export interface Route {
 	_id: string

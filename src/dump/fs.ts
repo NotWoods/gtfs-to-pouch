@@ -1,7 +1,7 @@
 import * as denodeify from 'denodeify';
 import { stat, readdir, readFile, Stats } from 'fs';
 
-interface ReadFileAsync {
+export interface ReadFileAsync {
 	(path: string, encoding: string): Promise<string>
 	(path: string, encoding?: null): Promise<Buffer>
 }

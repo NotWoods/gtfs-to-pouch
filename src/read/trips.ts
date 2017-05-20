@@ -5,7 +5,7 @@ import { getDays, Weekdays } from './calendar';
 import { getTripSchedule } from './stop_times';
 import { extractDocs, removeItem } from './utils';
 
-interface TripDetails {
+export interface TripDetails {
 	name: string
 	dates: Set<Weekdays>
 	direction: boolean

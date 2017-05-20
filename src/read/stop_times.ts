@@ -20,7 +20,7 @@ export function getTripSchedule(
 	}
 }
 
-type FirstLastResult = { first_stop_id: string, last_stop_id: string };
+export type FirstLastResult = { first_stop_id: string, last_stop_id: string };
 
 /**
  * Returns the first and last stop in a trip's schedule.

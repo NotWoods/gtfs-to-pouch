@@ -1,7 +1,7 @@
 import { Stop } from '../interfaces';
 import { extractDocs } from './utils'
 
-interface LatLng {
+export interface LatLng {
 	lat: number
 	lng: number
 }

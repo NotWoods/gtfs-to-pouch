@@ -6,7 +6,7 @@ import { readdir, isDirectory, readFile } from './fs';
 import createOutputDump from './create-dump';
 import { getGTFSNames } from './transformers';
 
-type DataType = string | NodeJS.ReadableStream | Buffer;
+export type DataType = string | NodeJS.ReadableStream | Buffer;
 
 const filenames = getGTFSNames().map(name => `${name}.txt`);
 
