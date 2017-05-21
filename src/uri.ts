@@ -25,3 +25,7 @@ export const transfer: DocURI<{
 export const calendarDate: DocURI<{
 	service_id: string, date: string
 }> = route('exception/:service_id/:date');
+
+export const shapePoint: DocURI<{
+	shape_id: string, shape_pt_sequence: string
+}> = route('shape/:shape_id/:shape_pt_sequence');

@@ -176,6 +176,28 @@ function routeDays(
 Returns all days of the week that a route is active on
 
 
+### Shapes
+```ts
+function getShapePoint(
+	db: PouchDB.Database<Shape>
+): (shape_id: string, shape_pt_sequence: number) => Promise<Shape>
+```
+Returns a specific point in a shape
+
+```ts
+function getAllPoints(
+	db: PouchDB.Database<Shape>
+): (shape_id: string) => Promise<Shape[]>
+```
+Returns every point in a shape, sorted by their shape_pt_sequence
+
+```ts
+function shapeAsGeoJSON(shape: Shape[]): GeoJSON.Feature<GeoJSON.LineString>
+```
+Converts a series of shape point into a GeoJSON line string.
+The shape array should be sorted and all belong to the same shape_id
+
+
 ### Stop Times
 ```ts
 function getStopTime(
@@ -190,6 +212,13 @@ function getTripSchedule(
 ): (trip_id: string) => Promise<StopTime[]>
 ```
 Get the stop times associated with a trip, sorted by stop_sequence.
+
+```ts
+function stopTimesForStop(
+	stopTimeDB: PouchDB.Database<StopTime>
+): (stop_id: string) => Promise<StopTime[]>
+```
+Returns stop times associated to a stop
 
 ```ts
 type FirstLastResult = { first_stop_id: string, last_stop_id: string } | null
@@ -244,6 +273,11 @@ function nearestStop(
 Returns the nearest stop to some position. Optionally, a maximum distance
 from the position can be specified. Maximum distance is set in the same
 units as latitude and longitude.
+
+```ts
+function stopAsGeoJSON(stop: Stop): GeoJSON.Feature<GeoJSON.Point>
+```
+Returns the stop as a GeoJSON point.
 
 
 ### Trips

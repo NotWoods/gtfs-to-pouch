@@ -1,6 +1,6 @@
 {
   "name": "gtfs-to-pouch",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Tools to work with GTFS schedules using PouchDB databases.",
   "repository": "NotWoods/gtfs-to-pouch",
   "main": "dist/index.js",
@@ -8,6 +8,7 @@
   "bin": "./dist/dump/cmd.js",
   "devDependencies": {
     "@types/denodeify": "^1.2.30",
+    "@types/geojson": "^1.0.2",
     "@types/jszip": "0.0.32",
     "@types/moment-range": "^3.0.0",
     "@types/node": "^7.0.7",

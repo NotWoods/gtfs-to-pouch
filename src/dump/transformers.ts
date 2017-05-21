@@ -1,5 +1,7 @@
 import * as GTFS from '../interfaces';
-import { trip, stopTime, frequency, transfer, calendarDate } from '../uri';
+import {
+	trip, stopTime, frequency, transfer, calendarDate, shapePoint
+} from '../uri';
 
 function toInt(n: string) { return parseInt(n, 10); }
 
@@ -73,7 +75,13 @@ export const transformers: { [name: string]: Transformer } = {
 	},
 	shapes(doc): GTFS.Shape {
 		const shape: GTFS.Shape = <any> doc;
-		shape._id = doc.shape_id;
+		{
+			const { shape_id, shape_pt_sequence } = shape;
+			shape._id = shapePoint({
+				shape_id, shape_pt_sequence: String(shape_pt_sequence),
+			});
+		}
+
 		shape.shape_pt_lat = parseFloat(doc.shape_pt_lat);
 		shape.shape_pt_lon = parseFloat(doc.shape_pt_lon);
 		shape.shape_pt_sequence = toInt(doc.shape_pt_sequence);

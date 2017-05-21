@@ -59,6 +59,11 @@ export function stopAddress(
 	}
 }
 
+/**
+ * Returns the nearest stop to some position. Optionally, a maximum distance
+ * from the position can be specified. Maximum distance is set in the same
+ * units as latitude and longitude.
+ */
 export function nearestStop(
 	db: PouchDB.Database<Stop>,
 ): (pos: LatLng) => Promise<Stop>
@@ -92,4 +97,27 @@ export function nearestStop(
 		if (maxDistSquared >= closestDistanceSqr) return closestStop;
 		else return null;
 	}
+}
+
+/**
+ * Returns the stop as a GeoJSON point.
+ */
+export function stopAsGeoJSON(stop: Stop): GeoJSON.Feature<GeoJSON.Point> {
+	return {
+		type: 'Feature',
+		geometry: {
+			type: 'Point',
+			coordinates: [stop.stop_lon, stop.stop_lat]
+		},
+		id: stop.stop_id,
+		properties: {
+			stop_code: stop.stop_code,
+			stop_name: stop.stop_name,
+			stop_desc: stop.stop_desc,
+			stop_url: stop.stop_url,
+			location_type: stop.location_type,
+			parent_station: stop.parent_station,
+			wheelchair_boarding: stop.wheelchair_boarding,
+		},
+	};
 }

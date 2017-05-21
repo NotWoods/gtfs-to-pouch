@@ -30,6 +30,31 @@ export function getTripSchedule(
 	}
 }
 
+/**
+ * Returns stop times associated to a stop
+ */
+export function stopTimesForStop(
+	stopTimeDB: PouchDB.Database<StopTime>
+): (stop_id: string) => Promise<StopTime[]> {
+	return async stopID => {
+		const allStopTimes = await stopTimeDB.allDocs({
+			startkey: 'time/',
+			endkey: 'time/\uffff',
+		});
+
+		const desiredStopTimes = allStopTimes.rows
+			.map(row => row.id)
+			.filter(id => stopTime(id).stop_id === stopID);
+
+		const times = await stopTimeDB.allDocs({
+			keys: desiredStopTimes,
+			include_docs: true,
+		});
+
+		return extractDocs(times);
+	}
+}
+
 export type FirstLastResult = { first_stop_id: string, last_stop_id: string } | null;
 
 /**

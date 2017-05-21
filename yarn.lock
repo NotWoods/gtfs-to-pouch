@@ -10,6 +10,10 @@
   version "1.2.30"
   resolved "https://registry.yarnpkg.com/@types/denodeify/-/denodeify-1.2.30.tgz#9e356062b44524e7a399fb446d836fcfe352b9dc"
 
+"@types/geojson@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-1.0.2.tgz#b02d10ab028e2928ac592a051aaa4981a1941d03"
+
 "@types/jszip@0.0.32":
   version "0.0.32"
   resolved "https://registry.yarnpkg.com/@types/jszip/-/jszip-0.0.32.tgz#08f717c3fa3daa3feda6fbba9e12d90783c932ab"
