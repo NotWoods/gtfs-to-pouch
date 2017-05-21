@@ -1,7 +1,23 @@
 import * as moment from 'moment';
 import { Duration, Moment } from 'moment';
+import { calendarDate } from '../dump/transformers';
 import { CalendarDate } from '../interfaces';
 import { extractDocs } from './utils';
+
+/**
+ * Gets a calendar date from the database
+ */
+export function getCalendarDate(
+	db: PouchDB.Database<CalendarDate>
+): (service_id: string, date: string | moment.Moment) => Promise<CalendarDate> {
+	return (service_id, date) => {
+		if (typeof date !== 'string') {
+			date = date.format('YMMDD');
+		}
+
+		return db.get(calendarDate({ service_id, date }))
+	}
+}
 
 /**
  * Returns every exception for the given service ID

@@ -21,11 +21,9 @@ export const frequency: DocURI<Frequency> = route('frequency/:trip_id/:start_tim
 export const transfer: DocURI<Transfer> = route('transfer/:from_stop_id/:to_stop_id');
 export const calendarDate: DocURI<CalendarDate> = route('exception/:service_id/:date');
 
-export interface Transformers {
-	[name: string]: (row: { [prop: string]: string }) => object & { _id: string }
-}
+export type Transformer = (row: { [prop: string]: string }) => object & { _id: string }
 
-export const transformers: Transformers = {
+export const transformers: { [name: string]: Transformer } = {
 	agency(doc): GTFS.Agency {
 		const agency: GTFS.Agency = <any> doc;
 		agency._id = doc.agency_id || doc.agency_name;

@@ -15,6 +15,34 @@ export interface TripDetails {
 }
 
 /**
+ * Get a trip based on its `trip_id`, which is different from the `_id`
+ * used in the database
+ */
+export function getTrip(
+	tripDB: PouchDB.Database<Trip>
+): (trip_id: string, route_id?: string) => Promise<Trip> {
+	return async (trip_id, route_id) => {
+		let desiredDocID: string;
+		if (route_id) {
+			// If we know the route ID, the ID is easily generated
+			desiredDocID = trip({ trip_id, route_id });
+		} else {
+			// Otherwise look for the specific trip in an ID list
+			const trips = await tripDB.allDocs({
+				startkey: '/trip',
+				endkey: 'trip/\uffff',
+			});
+
+			const desiredRow = trips.rows.find(row => trip(row.id).trip_id === trip_id);
+			// If not found, just let PouchDB throw an error
+			desiredDocID = desiredRow ? desiredRow.id : '';
+		}
+
+		return tripDB.get(desiredDocID);
+	}
+}
+
+/**
  * Returns the name of the trip
  */
 export function tripName(trip: Trip): string {
@@ -28,14 +56,9 @@ export function allTripsForRoute(
 	tripDB: PouchDB.Database<Trip>
 ): (route_id: string) => Promise<Trip[]> {
 	return async routeID => {
-		const allTrips = await tripDB.allDocs();
-
-		const desiredTrips = allTrips.rows
-			.map(row => row.id)
-			.filter(id => trip(id).route_id === routeID);
-
 		const trips = await tripDB.allDocs({
-			keys: desiredTrips,
+			startkey: `trip/${routeID}/`,
+			endkey: `trip/${routeID}/\uffff`,
 			include_docs: true,
 		});
 

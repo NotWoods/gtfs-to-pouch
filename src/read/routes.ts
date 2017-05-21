@@ -9,6 +9,16 @@ export function getRouteName(route: Route): string {
 }
 
 /**
+ * Get a route based on its `route_id`, which is different from the `_id`
+ * used in the database
+ */
+export function getRoute(
+	db: PouchDB.Database<Route>
+): (route_id: string) => Promise<Route> {
+	return routeID => db.get(`route/${routeID}`)
+}
+
+/**
  * Get route summaries for every single route
  */
 export function listRoutes(
