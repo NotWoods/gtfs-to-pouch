@@ -222,6 +222,29 @@ function nextStopOfRoute(
 ): (route_id: string, now?: moment.Moment) => Promise<StopTime|null>
 ```
 
+### Stops
+```ts
+function stopAddress(
+	db: PouchDB.Database<Stop>,
+	apiKey: string
+): (stop_id: string) => Promise<string>
+```
+Looks up the address for a stop using Google Reverse Geocoding
+- **apiKey**: API key for Google API
+
+```ts
+function nearestStop(
+	db: PouchDB.Database<Stop>,
+): (pos: LatLng) => Promise<Stop>
+function nearestStop(
+	db: PouchDB.Database<Stop>,
+	maxDistance: number,
+): (pos: LatLng) => Promise<Stop|null>
+```
+Returns the nearest stop to some position. Optionally, a maximum distance
+from the position can be specified. Maximum distance is set in the same
+units as latitude and longitude.
+
 
 ### Trips
 ```ts
