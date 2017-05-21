@@ -1,5 +1,6 @@
 import { Stop } from '../interfaces';
 import { stop } from '../uri';
+import { notFound } from './utils'
 
 export interface LatLngBounds {
 	southwest: GeoJSON.Position
@@ -19,6 +20,8 @@ export function getStop(
 			startkey: `stop/${stopID}/`,
 			endkey: `stop/${stopID}/\uffff`
 		});
+
+		if (rows.length === 0) throw notFound('missing');
 
 		return rows[0].doc;
 	}

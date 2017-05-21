@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 import { stopTime, trip } from '../uri'
 import { StopTime, Trip } from '../interfaces';
-import { extractDocs, timeOnly } from './utils';
+import { extractDocs, timeOnly, notFound } from './utils';
 
 /**
  * Gets a stop time from the database
@@ -14,7 +14,8 @@ export function getStopTime(
 }
 
 /**
- * Get the stop times associated with a trip, sorted by stop_sequence
+ * Get the stop times associated with a trip, sorted by stop_sequence.
+ * Throws 404 error if no schedule is found.
  */
 export function getTripSchedule(
 	stopTimeDB: PouchDB.Database<StopTime>
@@ -26,7 +27,9 @@ export function getTripSchedule(
 			endkey: `time/${tripID}/\uffff`,
 		});
 
-		return extractDocs(times);
+		const result = extractDocs(times);
+		if (result.length === 0) throw notFound('missing trip schedule');
+		return result;
 	}
 }
 
@@ -55,15 +58,13 @@ export function stopTimesForStop(
 	}
 }
 
-export type FirstLastResult = { first_stop_id: string, last_stop_id: string } | null;
-
 /**
  * Returns the first and last stop in a trip's schedule.
- * Returns null if there is no schedule for the trip.
+ * Throws if there is no schedule for the trip.
  */
 export function firstAndLastStop(
 	db: PouchDB.Database<StopTime>
-): (trip_id: string) => Promise<FirstLastResult> {
+): (trip_id: string) => Promise<{ first_stop_id: string, last_stop_id: string }> {
 	return async tripID => {
 		const times = await db.allDocs({
 			startkey: `time/${tripID}/`,
@@ -76,8 +77,8 @@ export function firstAndLastStop(
 			.map(row => row.id)
 			.sort();
 
-		// If the schedule is empty, return null.
-		if (ids.length === 0) return null;
+		// If the schedule is empty, throw an error.
+		if (ids.length === 0) notFound('missing schedule for trip');
 
 		const firstID = ids[0];
 		const lastID = ids[ids.length - 1];
@@ -94,14 +95,15 @@ export function firstAndLastStop(
 
 /**
  * Returns the next stop that will be reached based on a
- * list of stop times
+ * list of stop times. Throws if the list is empty.
  */
 export function nextStopFromList(
 	stopTimes: StopTime[], now = moment()
-): StopTime | null {
+): StopTime {
+	if (stopTimes.length === 0) throw new Error('No stop times provided');
 	const nowTime = timeOnly(now);
 
-	let closestStop: StopTime|null = null;
+	let closestStop: StopTime | null = null;
 	for (const stopTime of stopTimes) {
 		const time = moment(stopTime.arrival_time, 'H:mm:ss');
 		if (time < nowTime) continue;
@@ -110,12 +112,12 @@ export function nextStopFromList(
 		else if (time < moment(closestStop.arrival_time)) closestStop = stopTime;
 	}
 
-	return closestStop;
+	return <StopTime> closestStop;
 }
 
 export function nextStopOfTrip(
 	db: PouchDB.Database<StopTime>
-): (trip_id: string, now?: moment.Moment) => Promise<StopTime|null> {
+): (trip_id: string, now?: moment.Moment) => Promise<StopTime> {
 	return async (tripID, now) => {
 		const list = await getTripSchedule(db)(tripID);
 		return nextStopFromList(list, now);
@@ -125,7 +127,7 @@ export function nextStopOfTrip(
 export function nextStopOfRoute(
 	tripDB: PouchDB.Database<Trip>,
 	stopTimeDB: PouchDB.Database<StopTime>,
-): (route_id: string, now?: moment.Moment) => Promise<StopTime|null> {
+): (route_id: string, now?: moment.Moment) => Promise<StopTime> {
 	return async (routeID, now) => {
 		const allTrips = await tripDB.allDocs();
 

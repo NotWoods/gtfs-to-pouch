@@ -34,3 +34,7 @@ export function timeOnly(base: moment.Moment): moment.Moment {
 		millisecond: base.millisecond(),
 	});
 }
+
+export function notFound(message: string) {
+	return { status: 404, name: 'not_found', message };
+}

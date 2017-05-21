@@ -1,4 +1,5 @@
 import { Agency } from '../interfaces';
+import { notFound } from './utils';
 
 /**
  * Gets an agency from the schedule, or the first listed agency if no ID is
@@ -11,7 +12,9 @@ export function getAgency(
 	return async id => {
 		if (id) return db.get(id);
 
-		const res = await db.allDocs({ limit: 1, include_docs: true });
-		return res.rows[0].doc;
+		const { rows } = await db.allDocs({ limit: 1, include_docs: true });
+		if (rows.length === 0) throw notFound('no agencies in database');
+
+		return rows[0].doc;
 	}
 }

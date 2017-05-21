@@ -3,7 +3,7 @@ import 'moment-range';
 import { trip } from '../uri';
 import { Trip, StopTime } from '../interfaces';
 import { getTripSchedule } from './stop_times';
-import { extractDocs, removeItem, timeOnly } from './utils';
+import { extractDocs, removeItem, timeOnly, notFound } from './utils';
 
 /**
  * Get a trip based on its `trip_id`, which is different from the `_id`
@@ -25,8 +25,9 @@ export function getTrip(
 			});
 
 			const desiredRow = trips.rows.find(row => trip(row.id).trip_id === trip_id);
-			// If not found, just let PouchDB throw an error
-			desiredDocID = desiredRow ? desiredRow.id : '';
+			// If not found, throw an error
+			if (!desiredRow) throw notFound('missing');
+			desiredDocID = desiredRow.id;
 		}
 
 		return tripDB.get(desiredDocID);
@@ -65,11 +66,9 @@ export function allTripsForRoute(
  */
 export function tripTimes(
 	stopTimeDB: PouchDB.Database<StopTime>,
-): (trip_id: string) => Promise<moment.Range|null> {
+): (trip_id: string) => Promise<moment.Range> {
 	return async tripID => {
 		const schedule = await getTripSchedule(stopTimeDB)(tripID);
-		// Return null if the schedule is empty
-		if (schedule.length === 0) return null;
 
 		let earliest = moment(Number.POSITIVE_INFINITY);
 		let latest = moment(0);
@@ -107,10 +106,9 @@ export function currentTrip(
 			t => getTimes(trip(t.id).trip_id)
 		));
 
-		const ranges = <{ time: moment.Range, _id: string }[]> times
+		const ranges = times
 			.map((time, index) => ({ time, _id: trips.rows[index].id }))
 			.filter(range => {
-				if (range.time === null) return false;
 				const { start, end } = range.time;
 				return start > nowTime && end < nowTime;
 			});

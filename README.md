@@ -212,6 +212,7 @@ function getTripSchedule(
 ): (trip_id: string) => Promise<StopTime[]>
 ```
 Get the stop times associated with a trip, sorted by stop_sequence.
+Throws 404 error if no schedule is found.
 
 ```ts
 function stopTimesForStop(
@@ -221,34 +222,33 @@ function stopTimesForStop(
 Returns stop times associated to a stop
 
 ```ts
-type FirstLastResult = { first_stop_id: string, last_stop_id: string } | null
-
 function firstAndLastStop(
 	db: PouchDB.Database<StopTime>
-): (trip_id: string) => Promise<FirstLastResult>
+): (trip_id: string) => Promise<{ first_stop_id: string, last_stop_id: string }>
 ```
 Returns the first and last stop in a trip's schedule.
-Returns null if there is no schedule for the trip.
+Throws if there is no schedule for the trip.
 
 ```ts
 function nextStopFromList(
   stopTimes: StopTime[],
   now?: moment.Moment
-): StopTime | null
+): StopTime
 ```
-Returns the next stop that will be reached based on a list of stop times
+Returns the next stop that will be reached based on a list of stop times.
+Throws if the list is empty.
 
 ```ts
 function nextStopOfTrip(
 	db: PouchDB.Database<StopTime>
-): (trip_id: string, now?: moment.Moment) => Promise<StopTime|null>
+): (trip_id: string, now?: moment.Moment) => Promise<StopTime>
 ```
 
 ```ts
 function nextStopOfRoute(
 	tripDB: PouchDB.Database<Trip>,
 	stopTimeDB: PouchDB.Database<StopTime>,
-): (route_id: string, now?: moment.Moment) => Promise<StopTime|null>
+): (route_id: string, now?: moment.Moment) => Promise<StopTime>
 ```
 
 ### Stops
@@ -321,7 +321,7 @@ Get every single trip that is a child of a route
 ```ts
 function tripTimes(
 	stopTimeDB: PouchDB.Database<StopTime>,
-): (trip_id: string) => Promise<moment.Range|null>
+): (trip_id: string) => Promise<moment.Range>
 ```
 Finds the earliest and latest time in the trip's schedule and returns
 an array representing a range. If the schedule is empty, null is
