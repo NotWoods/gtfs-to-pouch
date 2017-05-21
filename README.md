@@ -1,8 +1,15 @@
 # gtfs-to-pouch
 Tools to work with GTFS schedules using PouchDB databases.
 
+This library provides scripts to convert GTFS files to a PouchDB database,
+and tools to query data from the databases after they are loaded.
+
 ## Create dumpfile
 Convert a GTFS file to PouchDB dumpfiles. Exported from `'gtfs-to-pouch/dist/dump'`
+
+Transit data is commonly stored in the GTFS format, and this script can
+unzip it and store it in a PouchDB database dumpfile, which can be statically
+hosted then loaded onto clients.
 
 ### API
 

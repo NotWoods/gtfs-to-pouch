@@ -1,7 +1,7 @@
 {
   "name": "gtfs-to-pouch",
-  "version": "1.4.0",
-  "description": "Converts a GTFS file to PouchDB dumpfiles",
+  "version": "1.4.1",
+  "description": "Tools to work with GTFS schedules using PouchDB databases.",
   "repository": "NotWoods/gtfs-to-pouch",
   "main": "dist/index.js",
   "module": "es/index.js",
