@@ -60,8 +60,17 @@ export function stopAddress(
 }
 
 export function nearestStop(
-	db: PouchDB.Database<Stop>
-): (pos: LatLng) => Promise<Stop> {
+	db: PouchDB.Database<Stop>,
+): (pos: LatLng) => Promise<Stop>
+export function nearestStop(
+	db: PouchDB.Database<Stop>,
+	maxDistance: number,
+): (pos: LatLng) => Promise<Stop|null>
+export function nearestStop(
+	db: PouchDB.Database<Stop>,
+	maxDistance: number = Number.POSITIVE_INFINITY,
+): (pos: LatLng) => Promise<Stop|null> {
+	const maxDistSquared = Math.pow(maxDistance, 2);
 	return async pos => {
 		let closestDistanceSqr = Number.POSITIVE_INFINITY;
 		let closestStop: Stop | null = null;
@@ -80,6 +89,7 @@ export function nearestStop(
 			}
 		}
 
-		return closestStop;
+		if (maxDistSquared >= closestDistanceSqr) return closestStop;
+		else return null;
 	}
 }
