@@ -3,7 +3,7 @@ import { trip } from '../uri';
 import { Trip, StopTime, Calendar } from '../interfaces';
 import { getDays, Weekdays } from './calendar';
 import { getTripSchedule } from './stop_times';
-import { extractDocs, removeItem } from './utils';
+import { extractDocs, removeItem, timeOnly } from './utils';
 
 export interface TripDetails {
 	name: string
@@ -66,6 +66,8 @@ export function allTripsForRoute(
 	}
 }
 
+export type Range = [moment.Moment,moment.Moment];
+
 /**
  * Finds the earliest and latest time in the trip's schedule and returns
  * an array representing a range. If the schedule is empty, null is
@@ -73,7 +75,7 @@ export function allTripsForRoute(
  */
 export function tripTimes(
 	stopTimeDB: PouchDB.Database<StopTime>,
-): (trip_id: string) => Promise<[moment.Moment,moment.Moment]|null> {
+): (trip_id: string) => Promise<Range|null> {
 	return async tripID => {
 		const schedule = await getTripSchedule(stopTimeDB)(tripID);
 		// Return null if the schedule is empty
@@ -115,6 +117,49 @@ export function tripDetails(
 			direction: direction_id,
 			id: _id, trip_id: trip_id,
 		};
+	}
+}
+
+/**
+ * Gets the trip that is currently running in a route. If none are running,
+ * the first trip is returned instead. If some are running, the earliest current
+ * trip is returned.
+ */
+export function currentTrip(
+	tripDB: PouchDB.Database<Trip>,
+	stopTimeDB: PouchDB.Database<StopTime>,
+): (route_id: string, now?: moment.Moment) => Promise<any> {
+	return async (routeID, now = moment()) => {
+		const trips = await tripDB.allDocs({
+			startkey: `trip/${routeID}/`,
+			endkey: `trip/${routeID}/\uffff`,
+		});
+
+		const nowTime = timeOnly(now);
+
+		const getTimes = tripTimes(stopTimeDB);
+		const times = await Promise.all(trips.rows.map(
+			t => getTimes(trip(t.id).trip_id)
+		));
+
+		const ranges = <{ time: Range, _id: string }[]> times
+			.map((time, index) => ({ time, _id: trips.rows[index].id }))
+			.filter(range => {
+				if (range.time === null) return false;
+				const [start, end] = range.time;
+				return start > nowTime && end < nowTime;
+			});
+
+		let desiredID: string;
+		if (ranges.length === 0) desiredID = trips.rows[0].id;
+		else {
+			const [earliest] = ranges.sort(
+				(a, b) => a.time[0].valueOf() - b.time[0].valueOf()
+			);
+			desiredID = earliest._id;
+		}
+
+		return tripDB.get(desiredID);
 	}
 }
 
