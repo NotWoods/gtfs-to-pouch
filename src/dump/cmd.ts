@@ -1,9 +1,9 @@
 import { extname, join } from 'path';
 import parseArgs from 'minimist';
 import { isDirectory } from './fs';
-import parseGTFS from './main';
+import parseGTFS from './index';
 
-export * from './main';
+export * from './index';
 
 type Args = {
 	input?: string,

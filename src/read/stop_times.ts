@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 import { stopTime, trip } from '../uri'
 import { StopTime, Trip } from '../interfaces';
-import { extractDocs } from './utils';
+import { extractDocs, timeOnly } from './utils';
 
 /**
  * Gets a stop time from the database
@@ -10,11 +10,11 @@ export function getStopTime(
 	db: PouchDB.Database<StopTime>
 ): (trip_id: string, stop_id: string, stop_sequence: number) => Promise<StopTime> {
 	return (trip_id, stop_id, stop_sequence) =>
-		db.get(stopTime({ trip_id, stop_id, stop_sequence }))
+		db.get(stopTime({ trip_id, stop_id, stop_sequence: String(stop_sequence) }))
 }
 
 /**
- * Get the stop times associated with a trip
+ * Get the stop times associated with a trip, sorted by stop_sequence
  */
 export function getTripSchedule(
 	stopTimeDB: PouchDB.Database<StopTime>
@@ -30,7 +30,7 @@ export function getTripSchedule(
 	}
 }
 
-export type FirstLastResult = { first_stop_id: string, last_stop_id: string };
+export type FirstLastResult = { first_stop_id: string, last_stop_id: string } | null;
 
 /**
  * Returns the first and last stop in a trip's schedule.
@@ -38,7 +38,7 @@ export type FirstLastResult = { first_stop_id: string, last_stop_id: string };
  */
 export function firstAndLastStop(
 	db: PouchDB.Database<StopTime>
-): (trip_id: string) => Promise<FirstLastResult|null> {
+): (trip_id: string) => Promise<FirstLastResult> {
 	return async tripID => {
 		const times = await db.allDocs({
 			startkey: `time/${tripID}/`,
@@ -72,27 +72,20 @@ export function firstAndLastStop(
  * list of stop times
  */
 export function nextStopFromList(
-	stopTimes: StopTime[]
-): (now?: moment.Moment) => Promise<StopTime|null> {
-	return async (now = moment()) => {
-		const nowTime = moment(0).set({
-			hour: now.hour(),
-			minute: now.minute(),
-			second: now.second(),
-			millisecond: now.millisecond(),
-		})
+	stopTimes: StopTime[], now = moment()
+): StopTime | null {
+	const nowTime = timeOnly(now);
 
-		let closestStop: StopTime|null = null;
-		for (const stopTime of stopTimes) {
-			const time = moment(stopTime.arrival_time, 'H:mm:ss');
-			if (time < nowTime) continue;
+	let closestStop: StopTime|null = null;
+	for (const stopTime of stopTimes) {
+		const time = moment(stopTime.arrival_time, 'H:mm:ss');
+		if (time < nowTime) continue;
 
-			if (!closestStop) closestStop = stopTime;
-			else if (time < moment(closestStop.arrival_time)) closestStop = stopTime;
-		}
-
-		return closestStop;
+		if (!closestStop) closestStop = stopTime;
+		else if (time < moment(closestStop.arrival_time)) closestStop = stopTime;
 	}
+
+	return closestStop;
 }
 
 export function nextStopOfTrip(
@@ -100,7 +93,7 @@ export function nextStopOfTrip(
 ): (trip_id: string, now?: moment.Moment) => Promise<StopTime|null> {
 	return async (tripID, now) => {
 		const list = await getTripSchedule(db)(tripID);
-		return nextStopFromList(list)(now);
+		return nextStopFromList(list, now);
 	}
 }
 
@@ -122,6 +115,6 @@ export function nextStopOfRoute(
 			schedules.push(...subSchedule);
 		}));
 
-		return nextStopFromList(schedules)(now);
+		return nextStopFromList(schedules, now);
 	}
 }

@@ -2,13 +2,13 @@ import { join } from 'path';
 import isStream from 'is-stream';
 import * as JSZip from 'jszip';
 import { toBuffer } from 'promise-stream-utils';
+import gtfsNames from '../filenames';
 import { readdir, isDirectory, readFile } from './fs';
 import createOutputDump from './create-dump';
-import { getGTFSNames } from './transformers';
 
 export type DataType = string | NodeJS.ReadableStream | Buffer;
 
-const filenames = getGTFSNames().map(name => `${name}.txt`);
+const filenames = gtfsNames.map(name => `${name}.txt`);
 
 /**
  * Parse a GTFS zip file and convert it to PouchDB dumpfiles, saved in the

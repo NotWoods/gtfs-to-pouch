@@ -4,6 +4,10 @@ import { allTripsForRoute } from './trips'
 import { getDays, Weekdays } from './calendar';
 import { extractDocs } from './utils'
 
+/**
+ * Returns the name string from the route. route_long_name is preferred,
+ * and route_short_name is used as a fallback
+ */
 export function getRouteName(route: Route): string {
 	return route.route_long_name || route.route_short_name;
 }
@@ -19,7 +23,7 @@ export function getRoute(
 }
 
 /**
- * Get route summaries for every single route
+ * Get every single route
  */
 export function listRoutes(
 	db: PouchDB.Database<Route>
@@ -71,22 +75,15 @@ export function connectedRoutes(
 	}
 }
 
-export interface RouteDetails {
-	route_data: Route
-	trips: Trip[]
-	dates: Set<Weekdays>
-}
-
-export function routeDetails(
-	routeDB: PouchDB.Database<Route>,
+/**
+ * Returns all days of the week that a route is active on
+ */
+export function routeDays(
 	tripDB: PouchDB.Database<Trip>,
 	calendarDB: PouchDB.Database<Calendar>,
-): (route_id: string) => Promise<RouteDetails> {
+): (route_id: string) => Promise<Set<Weekdays>> {
 	return async routeID => {
-		const [route_data, trips] = await Promise.all([
-			routeDB.get(`route/${routeID}`),
-			allTripsForRoute(tripDB)(routeID),
-		]);
+		const trips = await allTripsForRoute(tripDB)(routeID);
 
 		const dates = new Set<Weekdays>();
 		await Promise.all(trips.map(async trip => {
@@ -94,6 +91,6 @@ export function routeDetails(
 			subDates.forEach(dates.add, dates);
 		}));
 
-		return { route_data, trips, dates };
+		return dates;
 	}
 }

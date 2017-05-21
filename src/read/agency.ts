@@ -1,5 +1,10 @@
 import { Agency } from '../interfaces';
 
+/**
+ * Gets an agency from the schedule, or the first listed agency if no ID is
+ * used. Since most schedules have only 1 agency without an agency_id property,
+ * this function will return that agency.
+ */
 export function getAgency(
 	db: PouchDB.Database<Agency>
 ): (agency_id?: string) => Promise<Agency> {

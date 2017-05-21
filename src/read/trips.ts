@@ -1,22 +1,13 @@
 import * as moment from 'moment';
+import 'moment-range';
 import { trip } from '../uri';
-import { Trip, StopTime, Calendar } from '../interfaces';
-import { getDays, Weekdays } from './calendar';
+import { Trip, StopTime } from '../interfaces';
 import { getTripSchedule } from './stop_times';
 import { extractDocs, removeItem, timeOnly } from './utils';
 
-export interface TripDetails {
-	name: string
-	dates: Set<Weekdays>
-	direction: boolean
-	times: moment.Range
-	id: string
-	trip_id: string
-}
-
 /**
  * Get a trip based on its `trip_id`, which is different from the `_id`
- * used in the database
+ * used in the database. Providing a `route_id` will speed up the lookup.
  */
 export function getTrip(
 	tripDB: PouchDB.Database<Trip>
@@ -29,7 +20,7 @@ export function getTrip(
 		} else {
 			// Otherwise look for the specific trip in an ID list
 			const trips = await tripDB.allDocs({
-				startkey: '/trip',
+				startkey: 'trip/',
 				endkey: 'trip/\uffff',
 			});
 
@@ -43,7 +34,8 @@ export function getTrip(
 }
 
 /**
- * Returns the name of the trip
+ * Returns the name of the trip. Uses trip_short_name or trip_headsign,
+ * and returns an empty string if neither are avaliable
  */
 export function tripName(trip: Trip): string {
 	return trip.trip_short_name || trip.trip_headsign || '';
@@ -66,8 +58,6 @@ export function allTripsForRoute(
 	}
 }
 
-export type Range = [moment.Moment,moment.Moment];
-
 /**
  * Finds the earliest and latest time in the trip's schedule and returns
  * an array representing a range. If the schedule is empty, null is
@@ -75,7 +65,7 @@ export type Range = [moment.Moment,moment.Moment];
  */
 export function tripTimes(
 	stopTimeDB: PouchDB.Database<StopTime>,
-): (trip_id: string) => Promise<Range|null> {
+): (trip_id: string) => Promise<moment.Range|null> {
 	return async tripID => {
 		const schedule = await getTripSchedule(stopTimeDB)(tripID);
 		// Return null if the schedule is empty
@@ -91,32 +81,7 @@ export function tripTimes(
 			if (end > latest) latest = end;
 		}
 
-		return [earliest, latest];
-	}
-}
-
-export function tripDetails(
-	stopTimeDB: PouchDB.Database<StopTime>,
-	calendarDB: PouchDB.Database<Calendar>,
-): (trip: Trip) => Promise<TripDetails> {
-	return async trip => {
-		const name = tripName(trip);
-		const { direction_id, _id, trip_id } = trip;
-
-		// Start looking up the service days
-		const [dates, range] = await Promise.all([
-			getDays(calendarDB)(trip.service_id),
-			tripTimes(stopTimeDB)(trip_id),
-		]);
-
-		if (!range) throw new Error(`No schedule provided for trip ${trip_id}`);
-
-		return {
-			name, dates,
-			times: moment.range(range),
-			direction: direction_id,
-			id: _id, trip_id: trip_id,
-		};
+		return moment.range(earliest, latest);
 	}
 }
 
@@ -128,7 +93,7 @@ export function tripDetails(
 export function currentTrip(
 	tripDB: PouchDB.Database<Trip>,
 	stopTimeDB: PouchDB.Database<StopTime>,
-): (route_id: string, now?: moment.Moment) => Promise<any> {
+): (route_id: string, now?: moment.Moment) => Promise<Trip> {
 	return async (routeID, now = moment()) => {
 		const trips = await tripDB.allDocs({
 			startkey: `trip/${routeID}/`,
@@ -142,11 +107,11 @@ export function currentTrip(
 			t => getTimes(trip(t.id).trip_id)
 		));
 
-		const ranges = <{ time: Range, _id: string }[]> times
+		const ranges = <{ time: moment.Range, _id: string }[]> times
 			.map((time, index) => ({ time, _id: trips.rows[index].id }))
 			.filter(range => {
 				if (range.time === null) return false;
-				const [start, end] = range.time;
+				const { start, end } = range.time;
 				return start > nowTime && end < nowTime;
 			});
 
@@ -180,7 +145,6 @@ export function siblingTrips(
 
 		// Must have some times to compare to
 		if (!thisTripTime) return { previous: null, following: null };
-		const thisTripRange = moment.range(thisTripTime);
 
 		// Remove the passed trip from this list
 		removeItem(allTrips, t => t._id === trip._id);
@@ -191,12 +155,11 @@ export function siblingTrips(
 		let before: Result[] = [];
 		let after: Result[] = [];
 		await Promise.all(allTrips.map(async trip => {
-			const times = await tripTimes(stopTimeDB)(trip.trip_id);
-			if (!times) return;
-			const range = moment.range(times);
+			const range = await tripTimes(stopTimeDB)(trip.trip_id);
+			if (!range) return;
 
-			if (thisTripRange.overlaps(range)) return;
-			else if (thisTripRange.start > range.end) before.push({ trip, range });
+			if (thisTripTime.overlaps(range)) return;
+			else if (thisTripTime.start > range.end) before.push({ trip, range });
 			else after.push({ trip, range });
 		}));
 

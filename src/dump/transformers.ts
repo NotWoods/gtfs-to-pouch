@@ -115,7 +115,3 @@ export const transformers: { [name: string]: Transformer } = {
 		return rule;
 	}
 }
-
-export function getGTFSNames() {
-	return Object.keys(transformers);
-}

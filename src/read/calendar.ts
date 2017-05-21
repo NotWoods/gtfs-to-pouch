@@ -15,27 +15,38 @@ export enum Weekdays {
  * Get the dates of service for a given calendar entry as a set of
  * integers
  */
-export function getDays(
-	calendarDB: PouchDB.Database<Calendar>
-): (service_id: string) => Promise<Set<Weekdays>> {
-	return async (serviceID: string) => {
-		const dates = new Set<Weekdays>();
-		const cal = await calendarDB.get(serviceID);
-		if (cal.sunday) dates.add(Weekdays.Sunday);
-		if (cal.monday) dates.add(Weekdays.Monday);
-		if (cal.tuesday) dates.add(Weekdays.Tuesday);
-		if (cal.wednesday) dates.add(Weekdays.Wednesday);
-		if (cal.thursday) dates.add(Weekdays.Thursday);
-		if (cal.friday) dates.add(Weekdays.Friday);
-		if (cal.saturday) dates.add(Weekdays.Saturday);
-		return dates;
-	}
+export function calendarEntryToDays(cal: Calendar): Set<Weekdays> {
+	const dates = new Set<Weekdays>();
+	if (cal.sunday) dates.add(Weekdays.Sunday);
+	if (cal.monday) dates.add(Weekdays.Monday);
+	if (cal.tuesday) dates.add(Weekdays.Tuesday);
+	if (cal.wednesday) dates.add(Weekdays.Wednesday);
+	if (cal.thursday) dates.add(Weekdays.Thursday);
+	if (cal.friday) dates.add(Weekdays.Friday);
+	if (cal.saturday) dates.add(Weekdays.Saturday);
+	return dates;
 }
 
+/**
+ * Wraps `calendarEntryToDays` by looking up the calendar entry for a service ID
+ */
+export function getDays(
+	db: PouchDB.Database<Calendar>
+): (service_id: string) => Promise<Set<Weekdays>> {
+	return async serviceID => calendarEntryToDays(await db.get(serviceID));
+}
 
+/**
+ * Returns a string representing days of service, such as 'Daily' or 'Mon - Fri'
+ * @param days Set of days in the week that are serviced by the route
+ * @param mode Determins the format of the returned day names.
+ * normal: Sunday, Monday, ...
+ * short: Sun, Mon, ...
+ * min: Su, Mo, ...
+ */
 export function dateRangeString(
 	days: Set<Weekdays>,
-	mode: 'normal' | 'min' | 'short' = 'normal',
+	mode: 'normal' | 'short' | 'min' = 'normal',
 ): string {
 	// Should be at least 1 day in the set
 	if (days.size === 0) throw new Error('Not active on any days');

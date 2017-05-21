@@ -1,4 +1,6 @@
 import * as GTFS from '../interfaces';
+import filenames from '../filenames';
+import PouchDB from './pouchdb';
 
 export interface Databases {
 	agency: PouchDB.Database<GTFS.Agency>
@@ -17,33 +19,24 @@ export interface Databases {
 }
 
 function loadOne(
-	db: Databases,
+	db: Partial<Databases>,
 	prefix: string = '',
-): (name: string) => Promise<void> {
+): (name: keyof Databases) => Promise<void> {
 	return async name => {
-		db[name] = new PouchDB(name);
-		await db[name].load(`${prefix}/${name}.ndjson`);
+		if (!db[name]) db[name] = new PouchDB(name);
+		await (db[name] as any).load(`${prefix}/${name}.ndjson`);
 	}
 }
 
-export async function loadAll(prefix?: string): Promise<Databases> {
-	const db: Databases = {
-		agency: null as any,
-		calendar: null as any,
-		calendar_dates: null as any,
-		fare_attributes: null as any,
-		fare_rules: null as any,
-		feed_info: null as any,
-		frequencies: null as any,
-		routes: null as any,
-		shapes: null as any,
-		stops: null as any,
-		stop_times: null as any,
-		transfers: null as any,
-		trips: null as any,
-	}
+/**
+ * Loads all dumpfiles on the client.
+ * @param prefix URL for the folder where the dumpfiles are stored. If omitted,
+ * the root of the server is assumed to be the folder.
+ */
+export default async function loadAll(prefix?: string): Promise<Databases> {
+	const db = {} as Partial<Databases>;
 
-	await Promise.all(Object.keys(db).map(loadOne(db, prefix)));
+	await Promise.all(filenames.map(loadOne(db, prefix)));
 
-	return db;
+	return db as Databases;
 }

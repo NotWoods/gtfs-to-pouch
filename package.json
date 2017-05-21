@@ -1,10 +1,10 @@
 {
   "name": "gtfs-to-pouch",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "description": "Converts a GTFS file to PouchDB dumpfiles",
   "repository": "NotWoods/gtfs-to-pouch",
-  "main": "dist/dump/main.js",
-  "module": "es/dump/main.js",
+  "main": "dist/index.js",
+  "module": "es/index.js",
   "bin": "./dist/dump/cmd.js",
   "devDependencies": {
     "@types/denodeify": "^1.2.30",
@@ -37,5 +37,13 @@
     "dist",
     "es",
     "index.d.ts"
+  ],
+  "keywords": [
+    "gtfs",
+    "pouchdb",
+    "transit",
+    "sync",
+    "database",
+    "transportation"
   ]
 }

@@ -5,12 +5,14 @@ import { CalendarDate } from '../interfaces';
 import { extractDocs } from './utils';
 
 /**
- * Gets a calendar date from the database
+ * Gets a specific calendar date object from the database
  */
 export function getCalendarDate(
 	db: PouchDB.Database<CalendarDate>
 ): (service_id: string, date: string | moment.Moment) => Promise<CalendarDate> {
+	/** @param date Either a moment, or a string in the YYYYMMDD format */
 	return (service_id, date) => {
+		// Convert the moment into a date string
 		if (typeof date !== 'string') {
 			date = date.format('YMMDD');
 		}
@@ -43,6 +45,10 @@ export function allExceptions(
 export function upcomingExceptions(
 	db: PouchDB.Database<CalendarDate>
 ): (service_id: string, duration?: Duration, now?: Moment) => Promise<CalendarDate[]> {
+	/**
+	 * @param duration A moment duration, defaults to 1 month
+	 * @param now The current time. Can be overriden.
+	 */
 	return async (serviceID, duration = moment.duration(1, 'month'), now) => {
 		const start = moment(now).format('YMMDD');
 		const end = moment(now).add(duration).format('YMMDD');

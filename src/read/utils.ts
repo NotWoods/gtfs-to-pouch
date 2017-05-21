@@ -27,7 +27,7 @@ export function removeItem<T>(array: T[], func: (T) => boolean): void {
  * smaller units
  */
 export function timeOnly(base: moment.Moment): moment.Moment {
-	return moment().set({
+	return moment(0).set({
 		hour: base.hour(),
 		minute: base.minute(),
 		second: base.second(),
