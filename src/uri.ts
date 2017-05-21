@@ -29,3 +29,7 @@ export const calendarDate: DocURI<{
 export const shapePoint: DocURI<{
 	shape_id: string, shape_pt_sequence: string
 }> = route('shape/:shape_id/:shape_pt_sequence');
+
+export const stop: DocURI<{
+	stop_id: string, stop_lon: string, stop_lat: string
+}> = route('stop/:stop_id/[:stop_lon,:stop_lat]');

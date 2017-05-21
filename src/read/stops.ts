@@ -1,11 +1,33 @@
 import { Stop } from '../interfaces';
-import { extractDocs } from './utils'
+import { stop } from '../uri';
 
-export interface LatLng {
+export interface LatLngBounds {
+	southwest: GeoJSON.Position
+	northeast: GeoJSON.Position
+}
+
+/**
+ * Returns a stop from the database
+ */
+export function getStop(
+	db: PouchDB.Database<Stop>,
+): (stop_id: string) => Promise<Stop> {
+	return async stopID => {
+		const { rows } = await db.allDocs({
+			include_docs: true,
+			limit: 1,
+			startkey: `stop/${stopID}/`,
+			endkey: `stop/${stopID}/\uffff`
+		});
+
+		return rows[0].doc;
+	}
+}
+
+interface LatLng {
 	lat: number
 	lng: number
 }
-
 interface ReverseGeocodingResult {
 	address_components: {
 		long_name: string
@@ -32,12 +54,8 @@ interface ReverseGeocodingResponse {
 /**
  * Looks up the address for a stop using Google Reverse Geocoding
  */
-export function stopAddress(
-	db: PouchDB.Database<Stop>,
-	apiKey: string
-): (stop_id: string) => Promise<string> {
-	return async stopID => {
-		const stop = await db.get(stopID);
+export function stopAddress(apiKey: string): (stop: Stop) => Promise<string> {
+	return async stop => {
 		const latlng = `${stop.stop_lat},${stop.stop_lon}`;
 		const url = 'https://maps.googleapis.com/maps/api/geocode/json';
 
@@ -47,7 +65,7 @@ export function stopAddress(
 
 			const [first] = results;
 			if (!first) {
-				console.warn(`No address found for stop ${stopID}`);
+				console.warn(`No address found for stop ${stop.stop_id}`);
 				return '';
 			} else {
 				return first.formatted_address;
@@ -66,35 +84,37 @@ export function stopAddress(
  */
 export function nearestStop(
 	db: PouchDB.Database<Stop>,
-): (pos: LatLng) => Promise<Stop>
+): (pos: GeoJSON.Position) => Promise<Stop>
 export function nearestStop(
 	db: PouchDB.Database<Stop>,
 	maxDistance: number,
-): (pos: LatLng) => Promise<Stop|null>
+): (pos: GeoJSON.Position) => Promise<Stop|null>
 export function nearestStop(
 	db: PouchDB.Database<Stop>,
 	maxDistance: number = Number.POSITIVE_INFINITY,
-): (pos: LatLng) => Promise<Stop|null> {
+): (pos: GeoJSON.Position) => Promise<Stop|null> {
 	const maxDistSquared = Math.pow(maxDistance, 2);
 	return async pos => {
 		let closestDistanceSqr = Number.POSITIVE_INFINITY;
-		let closestStop: Stop | null = null;
+		let closestStopID: string = '';
+		const [lng, lat] = pos;
 
-		const stops = extractDocs(await db.allDocs({ include_docs: true }));
-		for (const stop of stops) {
+		const stops = await db.allDocs();
+		for (const { id } of stops.rows) {
+			const { stop_lat, stop_lon } = stop(id);
 			// Use pythagorean formula to compute distance.
 			// Use squared distances to skip calculating the square root.
-			const aSqr = Math.pow(pos.lat - stop.stop_lat, 2);
-			const bSqr = Math.pow(pos.lng - stop.stop_lon, 2);
+			const aSqr = Math.pow(lat - parseFloat(stop_lat), 2);
+			const bSqr = Math.pow(lng - parseFloat(stop_lon), 2);
 
 			const distanceSqr = aSqr + bSqr;
 			if (distanceSqr < closestDistanceSqr) {
-				closestStop = stop;
+				closestStopID = id;
 				closestDistanceSqr = distanceSqr;
 			}
 		}
 
-		if (maxDistSquared >= closestDistanceSqr) return closestStop;
+		if (maxDistSquared >= closestDistanceSqr) return db.get(closestStopID);
 		else return null;
 	}
 }
@@ -120,4 +140,48 @@ export function stopAsGeoJSON(stop: Stop): GeoJSON.Feature<GeoJSON.Point> {
 			wheelchair_boarding: stop.wheelchair_boarding,
 		},
 	};
+}
+
+/**
+ * Returns every stop as a GeoJSON point. No properties are set on the resulting
+ * features, instead only the position and id are set.
+ * Internally, the stop id and position are indexed, so these points can be
+ * generated without loading the entire stop database.
+ */
+export function allStopsAsGeoJSON(
+	db: PouchDB.Database<Stop>,
+): (bounds?: LatLngBounds) => Promise<GeoJSON.FeatureCollection<GeoJSON.Point>> {
+	/**
+	 * @param bounds If set, the stops returned are limited to a certain area
+	 */
+	return async bounds => {
+		const stops = await db.allDocs();
+
+		let points = stops.rows.map(s => {
+			const { stop_id, stop_lat, stop_lon } = stop(s.id);
+			return {
+				type: 'Feature',
+				geometry: {
+					type: 'Point',
+					coordinates: [parseFloat(stop_lon), parseFloat(stop_lat)]
+				},
+				id: stop_id,
+				properties: null,
+			} as GeoJSON.Feature<GeoJSON.Point>;
+		});
+
+		if (bounds) {
+			const { northeast, southwest } = bounds;
+			points = points.filter(point => {
+				const [lng, lat] = point.geometry.coordinates;
+				return lat <= northeast[1] && lat >= southwest[1]
+					&& lng <= northeast[0] && lng >= southwest[0];
+			});
+		}
+
+		return {
+			type: 'FeatureCollection',
+			features: points,
+		};
+	}
 }

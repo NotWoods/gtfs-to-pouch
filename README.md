@@ -253,10 +253,14 @@ function nextStopOfRoute(
 
 ### Stops
 ```ts
-function stopAddress(
+function getStop(
 	db: PouchDB.Database<Stop>,
-	apiKey: string
-): (stop_id: string) => Promise<string>
+): (stop_id: string) => Promise<Stop>
+```
+Returns a stop from the database
+
+```ts
+function stopAddress(apiKey: string): (stop: Stop) => Promise<string>
 ```
 Looks up the address for a stop using Google Reverse Geocoding
 - **apiKey**: API key for Google API
@@ -264,11 +268,11 @@ Looks up the address for a stop using Google Reverse Geocoding
 ```ts
 function nearestStop(
 	db: PouchDB.Database<Stop>,
-): (pos: LatLng) => Promise<Stop>
+): (pos: GeoJSON.Position) => Promise<Stop>
 function nearestStop(
 	db: PouchDB.Database<Stop>,
 	maxDistance: number,
-): (pos: LatLng) => Promise<Stop|null>
+): (pos: GeoJSON.Position) => Promise<Stop|null>
 ```
 Returns the nearest stop to some position. Optionally, a maximum distance
 from the position can be specified. Maximum distance is set in the same
@@ -278,6 +282,18 @@ units as latitude and longitude.
 function stopAsGeoJSON(stop: Stop): GeoJSON.Feature<GeoJSON.Point>
 ```
 Returns the stop as a GeoJSON point.
+
+```ts
+interface LatLngBounds { southwest: GeoJSON.Position, northeast: GeoJSON.Position }
+function allStopsAsGeoJSON(
+	db: PouchDB.Database<Stop>,
+): (bounds?: LatLngBounds) => Promise<GeoJSON.FeatureCollection<GeoJSON.Point>>
+```
+Returns every stop as a GeoJSON point. No properties are set on the resulting
+features, instead only the position and id are set.
+Internally, the stop id and position are indexed, so these points can be
+generated without loading the entire stop database.
+- **bounds**: If set, the stops returned are limited to a certain area.
 
 
 ### Trips
