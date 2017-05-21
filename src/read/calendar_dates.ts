@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import { Duration, Moment } from 'moment';
-import { calendarDate } from '../dump/transformers';
+import { calendarDate } from '../uri';
 import { CalendarDate } from '../interfaces';
 import { extractDocs } from './utils';
 

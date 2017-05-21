@@ -1,25 +1,7 @@
-import { route } from 'docuri';
 import * as GTFS from '../interfaces';
+import { trip, stopTime, frequency, transfer, calendarDate } from '../uri';
 
 function toInt(n: string) { return parseInt(n, 10); }
-
-export interface DocURI<T = any> {
-	(str: string): T
-	(obj: T): string
-	(str: string, obj: T): string
-}
-
-export type Trip = { trip_id: string, route_id: string }
-export type StopTime = { trip_id: string, stop_id: string, stop_sequence: string | number };
-export type Frequency = { trip_id: string, start_time: string, end_time: string };
-export type Transfer = { from_stop_id: string, to_stop_id: string };
-export type CalendarDate = { service_id: string, date: string };
-
-export const trip: DocURI<Trip> = route('trip/:route_id/:trip_id');
-export const stopTime: DocURI<StopTime> = route('time/:trip_id/:stop_id/:stop_sequence');
-export const frequency: DocURI<Frequency> = route('frequency/:trip_id/:start_time/:end_time');
-export const transfer: DocURI<Transfer> = route('transfer/:from_stop_id/:to_stop_id');
-export const calendarDate: DocURI<CalendarDate> = route('exception/:service_id/:date');
 
 export type Transformer = (row: { [prop: string]: string }) => object & { _id: string }
 
@@ -55,7 +37,13 @@ export const transformers: { [name: string]: Transformer } = {
 	},
 	stop_times(doc): GTFS.StopTime {
 		const time: GTFS.StopTime = <any> doc;
-		time._id = stopTime(time);
+		{
+			const { trip_id, stop_id, stop_sequence } = time;
+			time._id = stopTime({
+				trip_id, stop_id, stop_sequence: String(stop_sequence)
+			});
+		}
+
 		time.stop_sequence = toInt(doc.stop_sequence);
 		if (doc.pickup_type) time.pickup_type = toInt(doc.pickup_type);
 		if (doc.drop_off_type) time.drop_off_type = toInt(doc.drop_off_type);

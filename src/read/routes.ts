@@ -1,4 +1,4 @@
-import { stopTime, trip } from '../dump/transformers';
+import { stopTime, trip } from '../uri';
 import { Route, StopTime, Trip, Calendar } from '../interfaces';
 import { allTripsForRoute } from './trips'
 import { getDays, Weekdays } from './calendar';

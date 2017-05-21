@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { stopTime, trip } from '../dump/transformers'
+import { stopTime, trip } from '../uri'
 import { StopTime, Trip } from '../interfaces';
 import { extractDocs } from './utils';
 

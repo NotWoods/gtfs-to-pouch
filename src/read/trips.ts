@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { trip } from '../dump/transformers';
+import { trip } from '../uri';
 import { Trip, StopTime, Calendar } from '../interfaces';
 import { getDays, Weekdays } from './calendar';
 import { getTripSchedule } from './stop_times';
