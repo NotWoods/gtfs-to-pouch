@@ -30,8 +30,19 @@ export const transformers: { [name: string]: Transformer } = {
 	},
 	trips(doc): GTFS.Trip {
 		const entry: GTFS.Trip = <any> doc;
-		entry._id = trip(entry);
 		if (doc.direction_id) entry.direction_id = Boolean(doc.direction_id);
+		{
+			const { trip_id, route_id, direction_id } = entry;
+			let directionString: string;
+			switch (direction_id) {
+				case true: directionString = '1'; break;
+				case false: directionString = '0'; break;
+				default: directionString = ''; break;
+			}
+
+			entry._id = trip({ trip_id, route_id, direction_id: directionString });
+		}
+
 		if (doc.wheelchair_accessible)
 			entry.wheelchair_accessible = toInt(doc.wheelchair_accessible);
 		if (doc.bikes_allowed) entry.bikes_allowed = toInt(doc.bikes_allowed);

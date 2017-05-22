@@ -129,10 +129,12 @@ export function nextStopOfRoute(
 	stopTimeDB: PouchDB.Database<StopTime>,
 ): (route_id: string, now?: moment.Moment) => Promise<StopTime> {
 	return async (routeID, now) => {
-		const allTrips = await tripDB.allDocs();
+		const routeTrips = await tripDB.allDocs({
+			startkey: `trip/${routeID}/`,
+			endkey: `trip/${routeID}/\uffff`,
+		});
 
-		const desiredTrips = allTrips.rows
-			.filter(row => trip(row.id).route_id === routeID)
+		const desiredTrips = routeTrips.rows
 			.map(row => trip(row.id).trip_id);
 
 		const getSchedule = getTripSchedule(stopTimeDB);
@@ -144,4 +146,22 @@ export function nextStopOfRoute(
 
 		return nextStopFromList(schedules, now);
 	}
+}
+
+/**
+ * Returns a moment range representing the first and last time in a set of
+ * stop times.
+ */
+export function scheduleRange(schedule: Iterable<StopTime>): moment.Range {
+	let earliest = moment(Number.POSITIVE_INFINITY);
+	let latest = moment(0);
+	for (const time of schedule) {
+		const start = moment(time.arrival_time, 'H:mm:ss');
+		const end = moment(time.departure_time, 'H:mm:ss');
+
+		if (start < earliest) earliest = start;
+		if (end > latest) latest = end;
+	}
+
+	return moment.range(earliest, latest);
 }

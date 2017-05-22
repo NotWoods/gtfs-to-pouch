@@ -90,3 +90,30 @@ export function dateRangeString(
 
 	return daysList.map(day => weekdays[day]).join(' & ');
 }
+
+/**
+ * Converts a set of weekdays to a URI. Useful for comparing sets.
+ */
+export function daysToURI(entry: Set<Weekdays> | Calendar): string {
+	let days: Set<Weekdays>;
+	if (!(entry instanceof Set)) days = calendarEntryToDays(entry);
+	else days = entry;
+
+	return new Array(7).fill('0')
+		.map((str, i) => days.has(i) ? '1': str)
+		.join('');
+}
+
+/**
+ * Converts a URI representing a set of weekdays to a set.
+ */
+export function uriToDays(uri: string): Set<Weekdays> {
+	if (uri.length !== 7) throw new Error('Bad URI format');
+	const days = new Set<Weekdays>();
+
+	Array.from(uri, (char, i) => {
+		if (char === '1') days.add(i);
+	});
+
+	return days;
+}

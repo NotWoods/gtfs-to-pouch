@@ -2,7 +2,7 @@ import * as moment from 'moment';
 import 'moment-range';
 import { trip } from '../uri';
 import { Trip, StopTime } from '../interfaces';
-import { getTripSchedule } from './stop_times';
+import { getTripSchedule, scheduleRange } from './stop_times';
 import { extractDocs, removeItem, timeOnly, notFound } from './utils';
 
 /**
@@ -12,11 +12,18 @@ import { extractDocs, removeItem, timeOnly, notFound } from './utils';
 export function getTrip(
 	tripDB: PouchDB.Database<Trip>
 ): (trip_id: string, route_id?: string) => Promise<Trip> {
-	return async (trip_id, route_id) => {
-		let desiredDocID: string;
-		if (route_id) {
+	return async (tripID, routeID) => {
+		if (routeID) {
 			// If we know the route ID, the ID is easily generated
-			desiredDocID = trip({ trip_id, route_id });
+			const { rows } = await tripDB.allDocs({
+				startkey: `trip/${routeID}/${tripID}/`,
+				endkey: `trip/${routeID}/${tripID}/\uffff`,
+				limit: 1,
+				include_docs: true,
+			});
+
+			if (rows.length === 0) throw notFound('missing');
+			return rows[0].doc;
 		} else {
 			// Otherwise look for the specific trip in an ID list
 			const trips = await tripDB.allDocs({
@@ -24,13 +31,11 @@ export function getTrip(
 				endkey: 'trip/\uffff',
 			});
 
-			const desiredRow = trips.rows.find(row => trip(row.id).trip_id === trip_id);
+			const desiredRow = trips.rows.find(row => trip(row.id).trip_id === tripID);
 			// If not found, throw an error
 			if (!desiredRow) throw notFound('missing');
-			desiredDocID = desiredRow.id;
+			return tripDB.get(desiredRow.id);
 		}
-
-		return tripDB.get(desiredDocID);
 	}
 }
 
@@ -61,27 +66,12 @@ export function allTripsForRoute(
 
 /**
  * Finds the earliest and latest time in the trip's schedule and returns
- * an array representing a range. If the schedule is empty, null is
- * returned instead.
+ * a moment range.
  */
 export function tripTimes(
 	stopTimeDB: PouchDB.Database<StopTime>,
 ): (trip_id: string) => Promise<moment.Range> {
-	return async tripID => {
-		const schedule = await getTripSchedule(stopTimeDB)(tripID);
-
-		let earliest = moment(Number.POSITIVE_INFINITY);
-		let latest = moment(0);
-		for (const time of schedule) {
-			const start = moment(time.arrival_time, 'H:mm:ss');
-			const end = moment(time.departure_time, 'H:mm:ss');
-
-			if (start < earliest) earliest = start;
-			if (end > latest) latest = end;
-		}
-
-		return moment.range(earliest, latest);
-	}
+	return async id => scheduleRange(await getTripSchedule(stopTimeDB)(id));
 }
 
 /**

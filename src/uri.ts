@@ -7,8 +7,8 @@ export interface DocURI<T> {
 }
 
 export const trip: DocURI<{
-	trip_id: string, route_id: string
-}> = route('trip/:route_id/:trip_id');
+	trip_id: string, route_id: string, direction_id: string
+}> = route('trip/:route_id/:trip_id/:direction_id');
 
 export const stopTime: DocURI<{
 	trip_id: string, stop_id: string, stop_sequence: string
