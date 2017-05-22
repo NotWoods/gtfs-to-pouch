@@ -100,10 +100,10 @@ function sameItems<T>(arr1: T[], arr2: T[]): boolean {
 }
 
 export interface StopTableEntry {
-	route_id: string,
-	service_days: {
-		[day: number]: StopTime[]
-	}
+	[route_id: string]: StopTime[]
+}
+export interface StopTableEntries {
+	[weekday: number]: StopTableEntry
 }
 
 /**
@@ -117,53 +117,65 @@ export function stopScheduleTable(
 	tripDB: PouchDB.Database<Trip>,
 	stopTimeDB: PouchDB.Database<StopTime>,
 	calendarDB: PouchDB.Database<Calendar>,
-): (stop_id: string) => Promise<StopTableEntry[]> {
+): (stop_id: string) => Promise<StopTableEntries> {
 	return async stopID => {
 		// Get all the stop times associated to the stop, then categorize them
 		// based on the trip_id
 		const times = await stopTimesForStop(stopTimeDB)(stopID);
-		const map = times.reduce((map, time) => {
+		const tripTimes = times.reduce((map, time) => {
 			const prev = map.get(time.trip_id) || [];
 			prev.push(time);
 			return map.set(time.trip_id, prev);
 		}, new Map<string, StopTime[]>())
 
-		const entries = new Map<string, StopTableEntry>();
+		const tripsInDay = <{ [day: number]: string[] }> {};
+		const routes = new Map<string, string>();
 
 		// For each trip ID
 		const _getTrip = getTrip(tripDB);
 		const _getDays = getDays(calendarDB);
-		await Promise.all(Array.from(map, async ([trip_id, times]) => {
+		await Promise.all(Array.from(tripTimes.keys(), async trip_id => {
 			// Get trip object and days set
-			const trip = await _getTrip(trip_id);
-			const days = await _getDays(trip.service_id);
-			const { route_id } = trip;
+			const { service_id, route_id } = await _getTrip(trip_id);
+			const days = await _getDays(service_id);
 
-			// Get a StopTableEntry from the set, and convert the weekdays set to a string
-			const entry = entries.get(route_id) || { route_id, service_days: {} };
-
-			// Add all the stop times to the array for these service days
-			for (let day = 0; day < 7; day++) {
-				if (!entry.service_days[day]) entry.service_days[day] = [];
-				if (days.has(day)) entry.service_days[day].push(...times);
+			for (const day of days) {
+				if (!tripsInDay[day]) tripsInDay[day] = [];
+				tripsInDay[day].push(trip_id);
 			}
 
-			// Replace duplicate arrays with the same object, so that idential
-			// service times can be easily identified across days
-			for (let day = 0; day < 7; day++) {
-				for (let j = day + 1; j < 7; j++) {
-					if (sameItems(entry.service_days[day], entry.service_days[j])) {
-						// Now, when the === operator is used between these arrays the
-						// returned value will be true
-						entry.service_days[j] = entry.service_days[day];
-					}
-				}
-			}
-
-			// Save the entry if newly created
-			entries.set(route_id, entry);
+			routes.set(trip_id, route_id);
 		}));
 
-		return Array.from(entries.values());
+		for (let day = 0; day < 7; day++) {
+			for (let otherday = day + 1; otherday < 7; otherday++) {
+				if (sameItems(tripsInDay[day], tripsInDay[otherday])) {
+					// Now, when the === operator is used between these arrays the
+					// returned value will be true
+					tripsInDay[otherday] = tripsInDay[day];
+				}
+			}
+		}
+
+		const stopTimes = new WeakMap<string[], StopTableEntry>();
+		for (const trips of Object.values<string[]>(tripsInDay)) {
+			if (stopTimes.has(trips)) continue;
+
+			const entry = <StopTableEntry> {};
+			for (const trip_id of trips) {
+				const route_id = <string> routes.get(trip_id);
+				const times = <StopTime[]> tripTimes.get(trip_id);
+
+				if (!entry[route_id]) entry[route_id] = [];
+				entry[route_id].push(...times);
+			}
+			stopTimes.set(trips, entry);
+		}
+
+		const entries = <StopTableEntries> {};
+		for (const [day, trips] of Object.entries<string[]>(tripsInDay)) {
+			entries[day] = stopTimes.get(trips);
+		}
+		return entries;
 	}
 }
