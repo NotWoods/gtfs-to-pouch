@@ -1,6 +1,6 @@
 import { StopTime, Trip, Stop, Calendar } from '../interfaces';
 import { trip } from '../uri';
-import { getDays, daysToURI, Weekdays } from './calendar';
+import { getDays } from './calendar';
 import { getTripSchedule, scheduleRange, stopTimesForStop } from './stop_times';
 import { getStop } from './stops';
 import { getTrip } from './trips';
