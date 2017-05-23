@@ -84,30 +84,36 @@ export function currentTrip(
 	stopTimeDB: PouchDB.Database<StopTime>,
 ): (route_id: string, now?: moment.Moment) => Promise<Trip> {
 	return async (routeID, now = moment()) => {
+		// Get the ID of every trip for this route
 		const trips = await tripDB.allDocs({
 			startkey: `trip/${routeID}/`,
 			endkey: `trip/${routeID}/\uffff`,
 		});
 
+		// Get a moment for the current time, but with a 0 date
 		const nowTime = timeOnly(now);
 
-		const getTimes = tripTimes(stopTimeDB);
-		const times = await Promise.all(trips.rows.map(
-			t => getTimes(trip(t.id).trip_id)
-		));
+		// Get the time range for each trip, and save it to ranges
+		// if it overlaps with the current time
+		const ranges: { start: moment.Moment, _id: string }[] = [];
+		const _tripTimes = tripTimes(stopTimeDB);
+		await Promise.all(trips.rows.map(async t => {
+			const { trip_id } = trip(t.id);
+			const range = await _tripTimes(trip_id);
 
-		const ranges = times
-			.map((time, index) => ({ time, _id: trips.rows[index].id }))
-			.filter(range => {
-				const { start, end } = range.time;
-				return start > nowTime && end < nowTime;
-			});
+			if (range.start > nowTime && range.end < nowTime) {
+				ranges.push({ start: range.start, _id: t.id });
+			}
+		}));
 
+		// Return the earliest trip found.
+		// If none of the ranges overlap with the current time,
+		// return the first trip in the route.
 		let desiredID: string;
 		if (ranges.length === 0) desiredID = trips.rows[0].id;
 		else {
 			const [earliest] = ranges.sort(
-				(a, b) => a.time[0].valueOf() - b.time[0].valueOf()
+				(a, b) => a.start.valueOf() - b.start.valueOf()
 			);
 			desiredID = earliest._id;
 		}

@@ -43,29 +43,31 @@ export function connectedRoutes(
 	routesDB: PouchDB.Database<Route>,
 ): (stop_id: string) => Promise<Route[]> {
 	return async stopID => {
-		const allTripsReady = tripsDB.allDocs();
-
-		// Get trips that pass the given stop
-		const stopTimes = await stopTimesDB.allDocs();
-		const tripIDs = new Set(stopTimes.rows
-			.map(row => stopTime(row.id))
-			.filter(data => data.stop_id === stopID)
-			.map(data => data.trip_id));
-
-		const allTrips = await allTripsReady;
-		const desiredIDs = allTrips.rows
-			.map(row => row.id)
-			.filter(id => tripIDs.has(trip(id).trip_id));
-		const trips = await tripsDB.allDocs({
-			include_docs: true,
-			keys: desiredIDs,
+		const allTripsReady = tripsDB.allDocs({
+			startkey: 'trip/',
+			endkey: 'trip/\uffff',
 		});
 
-		// Get routes that those trips belong to
-		const routeIDs = new Set(trips.rows
-			.filter(row => !row.value.deleted)
-			.map(row => `route/${(row.doc as Trip).route_id}`));
+		// Get the unique trips that pass the given stop
+		const stopTimes = await stopTimesDB.allDocs({
+			startkey: 'time/',
+			endkey: 'time/\uffff',
+		});
+		const tripIDs = new Set<string>();
+		for (const time of stopTimes.rows) {
+			const { trip_id, stop_id } = stopTime(time.id);
+			if (stop_id === stopID) tripIDs.add(trip_id);
+		}
 
+		// Find all the routes that the trips belong to
+		const allTrips = await allTripsReady;
+		const routeIDs = new Set<string>();
+		for (const { id } of allTrips.rows) {
+			const { trip_id, route_id } = trip(id);
+			if (tripIDs.has(trip_id)) routeIDs.add(`route/${route_id}`);
+		}
+
+		// Now that the keys have been found, load the full documents
 		const routes = await routesDB.allDocs({
 			keys: Array.from(routeIDs),
 			include_docs: true,

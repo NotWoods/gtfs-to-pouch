@@ -27,9 +27,8 @@ export function getTripSchedule(
 			endkey: `time/${tripID}/\uffff`,
 		});
 
-		const result = extractDocs(times);
-		if (result.length === 0) throw notFound('missing trip schedule');
-		return result;
+		if (times.total_rows === 0) throw notFound('missing trip schedule');
+		return extractDocs(times);
 	}
 }
 
@@ -40,11 +39,13 @@ export function stopTimesForStop(
 	stopTimeDB: PouchDB.Database<StopTime>
 ): (stop_id: string) => Promise<StopTime[]> {
 	return async stopID => {
+		// Get every single stop time
 		const allStopTimes = await stopTimeDB.allDocs({
 			startkey: 'time/',
 			endkey: 'time/\uffff',
 		});
 
+		// Filter out just the stop times that go to the correct stop
 		const desiredStopTimes = allStopTimes.rows
 			.map(row => row.id)
 			.filter(id => stopTime(id).stop_id === stopID);
@@ -71,20 +72,20 @@ export function firstAndLastStop(
 			endkey: `time/${tripID}/\uffff`,
 		});
 
-		// Sort the IDs by stop sequence
-		const ids = times.rows
-			.filter(row => !row.value.deleted)
-			.map(row => row.id)
-			.sort();
+		// Get the IDs, sorted by stop sequence
+		const ids = times.rows.map(row => row.id)
 
 		// If the schedule is empty, throw an error.
-		if (ids.length === 0) notFound('missing schedule for trip');
+		if (ids.length === 0) throw notFound('missing schedule for trip');
 
-		const firstID = ids[0];
-		const lastID = ids[ids.length - 1];
-		const [first, last] = await Promise.all([
-			db.get(firstID), db.get(lastID)
-		]);
+		// Get the first and last stop times in the schedule
+		const endpoints = await db.allDocs({
+			include_docs: true,
+			keys: [ids[0], ids[ids.length - 1]],
+		});
+
+		const [{ doc: first }, { doc: last }] = endpoints.rows;
+		if (!first || !last) throw notFound('endpoints may have been deleted');
 
 		return {
 			first_stop_id: first.stop_id,
@@ -96,6 +97,8 @@ export function firstAndLastStop(
 /**
  * Returns the next stop that will be reached based on a
  * list of stop times. Throws if the list is empty.
+ * If all times in the schedule are earlier than the current time,
+ * the first item in the schedule is returned.
  */
 export function nextStopFromList(
 	stopTimes: StopTime[], now = moment()
@@ -103,16 +106,20 @@ export function nextStopFromList(
 	if (stopTimes.length === 0) throw new Error('No stop times provided');
 	const nowTime = timeOnly(now);
 
-	let closestStop: StopTime | null = null;
+	let earliestStop: StopTime | null = null;
 	for (const stopTime of stopTimes) {
 		const time = moment(stopTime.arrival_time, 'H:mm:ss');
+		// Skip if earlier than the current time
 		if (time < nowTime) continue;
 
-		if (!closestStop) closestStop = stopTime;
-		else if (time < moment(closestStop.arrival_time)) closestStop = stopTime;
+		// If this stop time is earlier than the current earliestStop,
+		// update earliestStop with a new value
+		if (!earliestStop) earliestStop = stopTime;
+		else if (time < moment(earliestStop.arrival_time)) earliestStop = stopTime;
 	}
 
-	return <StopTime> closestStop;
+	if (!earliestStop) earliestStop = stopTimes[0];
+	return earliestStop;
 }
 
 export function nextStopOfTrip(

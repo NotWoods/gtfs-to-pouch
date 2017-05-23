@@ -12,7 +12,7 @@ export const trip: DocURI<{
 
 export const stopTime: DocURI<{
 	trip_id: string, stop_id: string, stop_sequence: string
-}> = route('time/:trip_id/:stop_id/:stop_sequence');
+}> = route('time/:trip_id/:stop_sequence/:stop_id');
 
 export const frequency: DocURI<{
 	trip_id: string, start_time: string, end_time: string
