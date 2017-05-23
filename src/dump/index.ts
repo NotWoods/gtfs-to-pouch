@@ -4,7 +4,7 @@ import * as JSZip from 'jszip';
 import { toBuffer } from 'promise-stream-utils';
 import gtfsNames from '../filenames';
 import { readdir, isDirectory, readFile } from './fs';
-import createOutputDump from './create-dump';
+import { dumpGTFS } from './create-dump';
 
 export type DataType = string | NodeJS.ReadableStream | Buffer;
 
@@ -39,7 +39,7 @@ export async function parseZipFile(data: DataType, outputDir: string) {
 		.filter(obj => obj != null);
 
 	// Call `createOutputDump` on each file then resolve when all are finished
-	await Promise.all(files.map(file => createOutputDump(file, outputDir)));
+	await Promise.all(files.map(file => dumpGTFS(file, 'dump', outputDir)));
 }
 
 /**
@@ -58,7 +58,7 @@ export async function parseFolder(folderPath: string, outputDir: string) {
 		.map(name => join(folderPath, name));
 
 	// Call `createOutputDump` on each file then resolve when all are finished
-	await Promise.all(files.map(file => createOutputDump(file, outputDir)));
+	await Promise.all(files.map(file => dumpGTFS(file, 'dump', outputDir)));
 }
 
 /**

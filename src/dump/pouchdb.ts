@@ -6,7 +6,7 @@ PouchDB.plugin(memoryAdapter);
 PouchDB.plugin(plugin);
 (PouchDB as any).adapter('writableStream', adapters.writableStream);
 
-export interface ReplicatingDatabase<T> extends PouchDB.Database<T> {
+export interface ReplicatingDatabase<T = any> extends PouchDB.Database<T> {
 	load(rs: NodeJS.ReadableStream): Promise<{ ok: true }>
 	dump(ws: NodeJS.WritableStream): Promise<{ ok: true }>
 }
