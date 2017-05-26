@@ -56,5 +56,8 @@ if (require.main === module) {
 			// Either --input or stdin is required
 			throw new Error('Missing --input path');
 		}
+
+		console.log('Done');
+		process.exit(0);
 	})().catch(err => console.error(stack ? err : err.message));
 }

@@ -17,7 +17,7 @@
     "typescript": "^2.3.2"
   },
   "dependencies": {
-    "csv-to-pouch": "^3.0.0",
+    "csv-to-pouch": "^3.1.1",
     "denodeify": "^1.2.1",
     "docuri": "^4.2.2",
     "is-stream": "^1.1.0",
