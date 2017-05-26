@@ -1,15 +1,15 @@
 import { createReadStream, createWriteStream } from 'fs';
 import { basename, join } from 'path';
-import parseCSVFile from 'csv-to-pouch';
+import { parseCSVFile } from 'csv-to-pouch';
 import { exists } from './fs';
 import { transformers } from './transformers';
 import PouchDB, { ReplicatingDatabase } from './pouchdb';
 
 export type File = string | JSZipObject;
 
-function fileBasename(file: File): string {
+export function fileBasename(file: File): string {
 	const filename = typeof file === 'string' ? file : file.name;
-	return basename(filename);
+	return basename(filename, '.txt');
 }
 
 /**
@@ -51,8 +51,7 @@ export type DB<T = any> = PouchDB.Database<T>;
  * you can optionally specify the database to save data to.
  */
 export function dumpGTFS(file: File, mode: 'dump', dest: string): Promise<string>
-export function dumpGTFS(file: File, mode: 'db'): Promise<DB>
-export function dumpGTFS<T>(file: File, mode: 'db', dest: DB<T>): Promise<DB<T>>
+export function dumpGTFS<T=any>(file: File, mode: 'db', dest?: DB<T>): Promise<DB<T>>
 export async function dumpGTFS(
 	file: File,
 	mode: 'dump' | 'db',

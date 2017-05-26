@@ -1,6 +1,6 @@
-type WithKey = PouchDB.Core.AllDocsWithKeyOptions;
-type WithKeys = PouchDB.Core.AllDocsWithKeysOptions;
-type WithinRange = PouchDB.Core.AllDocsWithinRangeOptions
+export type WithKey = PouchDB.Core.AllDocsWithKeyOptions;
+export type WithKeys = PouchDB.Core.AllDocsWithKeysOptions;
+export type WithinRange = PouchDB.Core.AllDocsWithinRangeOptions
 
 /**
  * Only get and allDocs are called by functions in the `read` folder.
@@ -21,7 +21,7 @@ export class MockDB<T extends { _id: string }> {
 	async allDocs(
 		options: WithKeys | WithinRange | WithKey
 	): Promise<PouchDB.Core.AllDocsResponse<T>> {
-		let total_rows: 0;
+		let total_rows = 0;
 
 		let filterFunc: (doc: T, index: number) => boolean = () => true;
 		if ((options as WithKeys).keys) {

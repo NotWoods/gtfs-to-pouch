@@ -1,5 +1,5 @@
 import { extname, join } from 'path';
-import parseArgs from 'minimist';
+import * as parseArgs from 'minimist';
 import { isDirectory } from './fs';
 import parseGTFS from './index';
 

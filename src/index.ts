@@ -4,4 +4,4 @@ export * from './load/';
 export * from './read/';
 export * from './interfaces';
 export * from './uri';
-export { default as filenames } from './filenames';
+export { names as filenames } from './dbs';

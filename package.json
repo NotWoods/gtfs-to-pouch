@@ -13,10 +13,11 @@
     "@types/moment-range": "^3.0.0",
     "@types/node": "^7.0.7",
     "@types/pouchdb": "^5.4.28",
+    "ts-jest": "^20.0.4",
     "typescript": "^2.3.2"
   },
   "dependencies": {
-    "csv-to-pouch": "^2.0.3",
+    "csv-to-pouch": "^3.0.0",
     "denodeify": "^1.2.1",
     "docuri": "^4.2.2",
     "is-stream": "^1.1.0",
@@ -24,6 +25,7 @@
     "minimist": "^1.2.0",
     "moment": "^2.18.1",
     "moment-range": "^3.0.3",
+    "pouchdb": "^6.2.0",
     "pouchdb-adapter-memory": "^6.1.2",
     "pouchdb-load": "^1.4.6",
     "pouchdb-replication-stream": "^1.2.9",
@@ -32,7 +34,8 @@
   "scripts": {
     "build-es": "tsc --module es2015 --outDir es || exit 0",
     "build-cjs": "tsc --module commonjs --outDir dist || exit 0",
-    "prepare": "npm run build-es && npm run build-cjs"
+    "prepare": "npm run build-es && npm run build-cjs",
+    "test": "jest"
   },
   "files": [
     "dist",
@@ -46,5 +49,16 @@
     "sync",
     "database",
     "transportation"
-  ]
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "/__tests__/.*\\.(ts|tsx|js)$"
+  }
 }
