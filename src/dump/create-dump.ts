@@ -1,7 +1,7 @@
 import { createReadStream, createWriteStream } from 'fs';
 import { basename, join } from 'path';
 import { parseCSVFile } from 'csv-to-pouch';
-import { exists } from './fs';
+import { stat, exists } from './fs';
 import { transformers } from './transformers';
 import PouchDB, { ReplicatingDatabase } from './pouchdb';
 
@@ -60,6 +60,13 @@ export async function dumpGTFS(
 	// Extract the file name and a readable stream for its contents
 	const name = fileBasename(file);
 
+	if (name === 'shapes') {
+		console.log('Skipping shapes file');
+		return '';
+	}
+
+	console.log(`${name}: Starting dump`);
+
 	// Create a database to dump to if an existing one isn't provided
 	let db: ReplicatingDatabase;
 	if (typeof dest === 'string')
@@ -78,8 +85,21 @@ export async function dumpGTFS(
 		if (typeof dest !== 'string')
 			throw new Error('Cannot use database destination in dump mode');
 
+		try {
+			const stats = await stat(dest);
+			if (!stats.isDirectory()) {
+				throw new Error(`${dest} must be a folder`);
+			}
+		} catch (err) {
+			if (err.code === 'ENOENT') {
+				throw new Error(`${dest} does not exist, create it first`);
+			}
+			throw err;
+		}
+
 		// Save the resulting file inside the output directory as a ndjson file
 		const destPath = join(dest, `${name}.ndjson`);
+		console.log(destPath);
 		// If there is an existing dumpfile, load it into the memery database.
 		if (await exists(destPath)) {
 			await db.load(createReadStream(destPath));
@@ -87,10 +107,12 @@ export async function dumpGTFS(
 
 		// Parse the CSV text file, then dump the updated database to the output path
 		await gtfsToDB(file, db);
-		await db.dump(createWriteStream(dest))
+		await db.dump(createWriteStream(destPath));
 
 		// Destroy the temporary database
-		await db.destroy();
+		// await db.destroy();
+
+		console.log(`${name}: Dump complete`);
 
 		// Return the path to the dumpfile
 		return destPath;

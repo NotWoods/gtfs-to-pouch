@@ -2,3 +2,4 @@
 node_modules
 dist
 es
+src/dump/__tests__/gtfs-dump

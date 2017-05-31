@@ -1,3 +1,4 @@
+#!/usr/bin/env/node
 import { extname, join } from 'path';
 import * as parseArgs from 'minimist';
 import { isDirectory } from './fs';
