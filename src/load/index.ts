@@ -2,14 +2,14 @@ import { newDBPartial, Databases } from '../dbs';
 import { names } from '../dbs';
 import PouchDB from './pouchdb';
 
-function loadOne(
-	db: Partial<Databases>,
+export async function loadOne<T>(
+	name: string,
 	prefix: string = '',
-): (name: keyof Databases) => Promise<void> {
-	return async name => {
-		if (!db[name]) db[name] = new PouchDB(name);
-		await (db[name] as any).load(`${prefix}/${name}.ndjson`);
-	}
+	db?: PouchDB.Database<T>,
+): Promise<PouchDB.Database<T>> {
+	if (!db) db = new PouchDB(name);
+	await (db as any).load(`${prefix}/${name}.ndjson`);
+	return db;
 }
 
 /**
@@ -20,7 +20,9 @@ function loadOne(
 export default async function loadAll(prefix?: string): Promise<Databases> {
 	const db = newDBPartial();
 
-	await Promise.all(names.map(loadOne(db, prefix)));
+	await Promise.all(names.map(async name => {
+		db[name] = await loadOne(name, prefix, db[name]);
+	}));
 
 	return db as Databases;
 }

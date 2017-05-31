@@ -7,8 +7,10 @@ export type WithinRange = PouchDB.Core.AllDocsWithinRangeOptions
  */
 export class MockDB<T extends { _id: string }> {
 	private docs: Map<string, T>
+	name: string;
 
 	constructor(name: string) {
+		this.name = name;
 		this.docs = new Map();
 	}
 
@@ -43,7 +45,12 @@ export class MockDB<T extends { _id: string }> {
 		}
 
 		if (options.skip) {
-			filterFunc = (doc, index) => filterFunc(doc, index) && index >= options.skip;
+			const skip = options.skip;
+			const noSkipFilter = filterFunc;
+			filterFunc = (doc, index) => {
+				if (index < skip) return false;
+				return noSkipFilter(doc, index);
+			}
 		}
 
 		let rows = Array.from(this.docs.values())

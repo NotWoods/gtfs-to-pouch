@@ -49,7 +49,6 @@ interface ReverseGeocodingResult {
 	place_id: string
 	types: string[]
 }
-
 interface ReverseGeocodingResponse {
 	results: ReverseGeocodingResult[]
 }

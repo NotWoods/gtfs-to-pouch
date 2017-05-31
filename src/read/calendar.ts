@@ -90,3 +90,14 @@ export function dateRangeString(
 
 	return daysList.map(day => weekdays[day]).join(' & ');
 }
+
+/**
+ * Checks if two sets of days have the same contents
+ */
+export function sameDays(a: Set<Weekdays>, b: Set<Weekdays>): boolean {
+	if (a.size !== b.size) return false;
+	for (const day of a) {
+		if (!b.has(day)) return false;
+	}
+	return true;
+}

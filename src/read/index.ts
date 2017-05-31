@@ -6,3 +6,5 @@ export * from './routes';
 export * from './stop_times';
 export * from './stops';
 export * from './trips';
+
+export * from './google';
