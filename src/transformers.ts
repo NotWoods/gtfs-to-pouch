@@ -1,11 +1,11 @@
-import * as GTFS from '../interfaces';
-import {
-	trip, stopTime, frequency, transfer, calendarDate, shapePoint
-} from '../uri';
+import * as GTFS from './interfaces';
+import * as uri from './uri';
 
 function toInt(n: string) { return parseInt(n, 10); }
 
-export type Transformer = (row: { [prop: string]: string }) => object & { _id: string }
+export interface Transformer {
+	(row: { [prop: string]: string }): object & { _id: string };
+}
 
 export const transformers: { [name: string]: Transformer } = {
 	agency(doc): GTFS.Agency {
@@ -40,7 +40,7 @@ export const transformers: { [name: string]: Transformer } = {
 				default: directionString = ''; break;
 			}
 
-			entry._id = trip({ trip_id, route_id, direction_id: directionString });
+			entry._id = uri.trip({ trip_id, route_id, direction_id: directionString });
 		}
 
 		if (doc.wheelchair_accessible)
@@ -52,7 +52,7 @@ export const transformers: { [name: string]: Transformer } = {
 		const time: GTFS.StopTime = <any> doc;
 		{
 			const { trip_id, stop_id, stop_sequence } = time;
-			time._id = stopTime({
+			time._id = uri.stopTime({
 				trip_id, stop_id, stop_sequence: String(stop_sequence)
 			});
 		}
@@ -88,7 +88,7 @@ export const transformers: { [name: string]: Transformer } = {
 		const shape: GTFS.Shape = <any> doc;
 		{
 			const { shape_id, shape_pt_sequence } = shape;
-			shape._id = shapePoint({
+			shape._id = uri.shapePoint({
 				shape_id, shape_pt_sequence: String(shape_pt_sequence),
 			});
 		}
@@ -102,14 +102,14 @@ export const transformers: { [name: string]: Transformer } = {
 	},
 	frequencies(doc): GTFS.Frequency {
 		const entry: GTFS.Frequency = <any> doc;
-		entry._id = frequency(entry);
+		entry._id = uri.frequency(entry);
 		entry.headway_secs = parseFloat(doc.headway_secs);
 		if (doc.exact_times) entry.exact_times = Boolean(doc.exact_times);
 		return entry;
 	},
 	transfers(doc): GTFS.Transfer {
 		const entry: GTFS.Transfer = <any> doc;
-		entry._id = transfer(entry);
+		entry._id = uri.transfer(entry);
 		entry.transfer_type = toInt(doc.transfer_type);
 		if (doc.min_transfer_time)
 			entry.min_transfer_time = parseFloat(doc.min_transfer_time);
@@ -122,7 +122,7 @@ export const transformers: { [name: string]: Transformer } = {
 	},
 	calendar_dates(doc): GTFS.CalendarDate {
 		const date: GTFS.CalendarDate = <any> doc;
-		date._id = calendarDate(date);
+		date._id = uri.calendarDate(date);
 		date.exception_type = toInt(doc.exception_type);
 		return date;
 	},
