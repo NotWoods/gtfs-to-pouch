@@ -29,15 +29,14 @@
     "query-pouch-gtfs": "^2.0.0"
   },
   "scripts": {
-    "build-es": "tsc --module es2015 --outDir es || exit 0",
-    "build-cjs": "tsc --module commonjs --outDir dist || exit 0",
+    "build-es": "tsc --module es2015 --outDir es",
+    "build-cjs": "tsc --module commonjs --outDir dist",
     "prepare": "npm run build-es && npm run build-cjs",
     "test": "jest"
   },
   "files": [
     "dist",
-    "es",
-    "index.d.ts"
+    "es"
   ],
   "keywords": [
     "gtfs",
