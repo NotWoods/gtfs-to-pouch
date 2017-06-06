@@ -124,6 +124,13 @@ export function parseGTFSPartial(
 	return portPartial(partialFile, name, outputDB);
 }
 
+/**
+ * Parses a GTFS zip file and saves the data into multiple PouchDB databases.
+ * @param inputFile Either a path to a GTFS file or folder, or a stream/buffer
+ * representing zip contents
+ * @param destinations Either a path to a folder containing the databases, or
+ * an object specifying paths for each database explicitly.
+ */
 export async function parseGTFS(
 	inputFile: string | NodeJS.ReadableStream | Buffer,
 	destinations: string | { [P in keyof DatabaseList]: DatabaseList[P] | string },

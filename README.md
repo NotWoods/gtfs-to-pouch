@@ -1,63 +1,65 @@
 # gtfs-to-pouch
-Tools to work with GTFS schedules using PouchDB databases.
+Scripts to convert GTFS files to a PouchDB database,
 
-This library provides scripts to convert GTFS files to a PouchDB database,
-and tools to query data from the databases after they are loaded.
+Transit data is commonly stored in the GTFS format. This script can unzip it
+and store it in PouchDB databases. These can later be queried with
+[query-pouch-gtfs](https://www.npmjs.com/package/query-pouch-gtfs).
 
-## Create dumpfile
-Convert a GTFS file to PouchDB dumpfiles. Exported from `'gtfs-to-pouch/dist/dump'`
 
-Transit data is commonly stored in the GTFS format, and this script can
-unzip it and store it in a PouchDB database dumpfile, which can be statically
-hosted then loaded onto clients.
-
-### API
+## API
 
 ```ts
-function parseGTFS(data: DataType, outputDir: string): Promise<void>
+function parseGTFS(
+	inputFile: string | NodeJS.ReadableStream | Buffer,
+	destinations: string | { [P in keyof DatabaseList]: DatabaseList[P] | string },
+): Promise<void>
 ```
-- **data**: either a path to a GTFS file or folder, or a stream/buffer representing zip contents
-- **outputDir**: path to the output directory
+Parses a GTFS zip file and saves the data into multiple PouchDB databases.
+- **inputFile**: Either a path to a GTFS file or folder,
+  or a stream/buffer representing zip contents
+- **destinations**: Either a path to a folder containing the databases, or
+  an object specifying paths for each database explicitly.
 
-### Command Line
+
+```ts
+function parseGTFSPartial(
+	partialFile: string,
+	destination: string | PouchDB.Database<any>,
+): Promise<void>
+function parseGTFSPartial(
+	partialFile: NodeJS.ReadableStream,
+	partialName: string,
+	destination: string | PouchDB.Database<any>,
+): Promise<void>
+```
+Parses a single GTFS partial, rather than the entire ZIP file.
+- **partialFile**: Either a path to an unzipped partial (ie: './routes.txt'),
+  or a readable stream representing the file contents.
+- **partialName**: If partialFile is a stream, provide the name of the file
+  here (ie: 'routes').
+- **destination**: The database to save results to, or a path to it.
+
+
+## Command Line
 
 Examples:
 ```
-gtfs-to-pouch -i gtfs.zip -o ./gtfs-dump
-gtfs-to-pouch --output ./gtfs-dump < gtfs.zip
-gtfs-to-pouch --input ./gtfs-files -o ./gtfs-dump
+gtfs-to-pouch -i gtfs.zip -o ./gtfs-dbs
+gtfs-to-pouch --output ./gtfs-dbs < gtfs.zip
+gtfs-to-pouch --input ./gtfs-files -o ./gtfs-dbs
+gtfs-to-pouch --partial -i ./routes.txt -o ./db/routes
 ```
 
 Options:
 ```
+--partial     Switches to partial mode. Allows for parsing a single GTFS text
+              file, such as routes.txt, rather than the entire ZIP file.
+
 -i, --input   Input path pointing to GTFS file or directory.
               Can also pipe from stdin.
--o, --output  Output directory, relative to the current working directory
+-n, --name    Name of the GTFS partial. Only needed if both in partial mode
+              and stdin is being used instead of input.
+-o, --output  Output directory, relative to the current working directory.
+              Should contain databases, or point to the database in partial mode.
 -h, --help    Show help text
 ```
-
-## Load dumpfile
-Loads all dumpfiles on the client. Exported from `'gtfs-to-pouch/dist/load'`
-
-```ts
-function loadAll(prefix?: string): Promise<{
-	agency: PouchDB.Database<Agency>
-	calendar: PouchDB.Database<Calendar>
-	calendar_dates: PouchDB.Database<CalendarDate>
-	fare_attributes: PouchDB.Database<FareAttribute>
-	fare_rules: PouchDB.Database<FareRule>
-	feed_info: PouchDB.Database<FeedInfo>
-	frequencies: PouchDB.Database<Frequency>
-	routes: PouchDB.Database<Route>
-	shapes: PouchDB.Database<Shape>
-	stops: PouchDB.Database<Stop>
-	stop_times: PouchDB.Database<StopTime>
-	transfers: PouchDB.Database<Transfer>
-	trips: PouchDB.Database<Trip>
-}>
-```
-- **prefix**: URL for the folder where the dumpfiles are stored. If omitted,
-  the root of the server is assumed to be the folder.
-
-## GTFS object interfaces
-Typescript interfaces exported under `'gtfs-to-pouch/dist/interfaces'`.
