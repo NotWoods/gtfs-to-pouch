@@ -1,6 +1,6 @@
 {
   "name": "gtfs-to-pouch",
-  "version": "1.5.2",
+  "version": "2.0.0",
   "description": "Tools to work with GTFS schedules using PouchDB databases.",
   "repository": "NotWoods/gtfs-to-pouch",
   "main": "dist/index.js",
