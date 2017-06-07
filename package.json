@@ -5,6 +5,7 @@
   "repository": "NotWoods/gtfs-to-pouch",
   "main": "dist/gtfs-to-pouch.js",
   "module": "es/gtfs-to-pouch.js",
+  "types": "es/gtfs-to-pouch.d.ts",
   "license": "MIT",
   "bin": {
     "gtfs-to-pouch": "./dist/dump/cmd.js"
