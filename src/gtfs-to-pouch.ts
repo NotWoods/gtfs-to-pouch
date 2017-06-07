@@ -7,23 +7,6 @@ import { toBuffer } from 'promise-stream-utils';
 import { portFile, portPartial } from './port-file';
 import { databaseNames, DatabaseList } from './database-list';
 
-export interface ParseGTFSOptions {
-	input: {
-		type: 'gtfs'
-		source: string | NodeJS.ReadableStream | Buffer;
-	} | {
-		type: 'folder'
-		source: string;
-	} | {
-		type: 'single';
-		source: string | NodeJS.ReadableStream;
-		name?: string;
-	};
-
-
-	output: string | { [P in keyof DatabaseList]: DatabaseList[P] | string }
-}
-
 type PortInputList = { [name: string]: string|JSZipObject };
 async function portAll(
 	inputList: PortInputList,

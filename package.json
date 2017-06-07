@@ -1,20 +1,24 @@
 {
   "name": "gtfs-to-pouch",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Convert a GTFS schedule into PouchDB databases",
   "repository": "NotWoods/gtfs-to-pouch",
-  "main": "dist/index.js",
-  "module": "es/index.js",
+  "main": "dist/gtfs-to-pouch.js",
+  "module": "es/gtfs-to-pouch.js",
+  "license": "MIT",
   "bin": {
     "gtfs-to-pouch": "./dist/dump/cmd.js"
   },
   "devDependencies": {
     "@types/denodeify": "^1.2.30",
     "@types/geojson": "^1.0.2",
+    "@types/jest": "^19.2.4",
     "@types/jszip": "0.0.32",
     "@types/moment-range": "^3.0.0",
     "@types/node": "^7.0.7",
     "@types/pouchdb": "^5.4.28",
+    "jest": "^20.0.4",
+    "pouchdb-adapter-memory": "^6.2.0",
     "ts-jest": "^20.0.4",
     "typescript": "^2.3.2"
   },
