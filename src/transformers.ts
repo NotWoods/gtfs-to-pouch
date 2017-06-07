@@ -22,7 +22,7 @@ export const transformers: { [name: string]: Transformer } = {
 	},
 	stops(doc): Stop {
 		const stopDoc: Stop = <any> doc;
-		stopDoc._id = stop(stop);
+		stopDoc._id = stop(stopDoc);
 		stopDoc.stop_lat = parseFloat(doc.stop_lat);
 		stopDoc.stop_lon = parseFloat(doc.stop_lon);
 		if (doc.location_type) stopDoc.location_type = toInt(doc.location_type);

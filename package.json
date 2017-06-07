@@ -30,7 +30,7 @@
     "minimist": "^1.2.0",
     "pouchdb": "^6.2.0",
     "promise-stream-utils": "^1.0.9",
-    "query-pouch-gtfs": "^2.0.0"
+    "query-pouch-gtfs": "^2.0.3"
   },
   "scripts": {
     "build-es": "tsc --module es2015 --outDir es",
