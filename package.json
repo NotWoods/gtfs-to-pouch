@@ -19,7 +19,7 @@
     "@types/node": "^7.0.7",
     "@types/pouchdb": "^5.4.28",
     "jest": "^20.0.4",
-    "pouchdb-adapter-memory": "^6.2.0",
+    "pouchdb-adapter-memory": "^7.0.0",
     "ts-jest": "^20.0.4",
     "typescript": "^2.3.2"
   },
