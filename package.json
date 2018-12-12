@@ -14,7 +14,7 @@
     "@types/denodeify": "^1.2.30",
     "@types/geojson": "^1.0.2",
     "@types/jest": "^19.2.4",
-    "@types/jszip": "0.0.32",
+    "@types/jszip": "3.1.4",
     "@types/moment-range": "^3.0.0",
     "@types/node": "^7.0.7",
     "@types/pouchdb": "^5.4.28",
