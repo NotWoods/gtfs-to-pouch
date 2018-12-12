@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@types/denodeify": "^1.2.30",
-    "@types/geojson": "^1.0.2",
+    "@types/geojson": "^7946.0.4",
     "@types/jest": "^19.2.4",
     "@types/jszip": "0.0.32",
     "@types/moment-range": "^3.0.0",
