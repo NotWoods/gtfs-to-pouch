@@ -42,7 +42,7 @@ test('creates the correct _id', async () => {
 	const [stopRow] = response.rows;
 
 	expect(stopRow).toBeDefined();
-	expect(stopRow.id).toMatch(/stop\/bd\/[0-9.]*\/[0-9.]*/);
+	expect(stopRow.id).toMatch(/stop\/bd\/[-0-9.]*\/[-0-9.]*/);
 })
 
 test('creates the correct object', async () => {

@@ -22,6 +22,7 @@ export const transformers: { [name: string]: Transformer } = {
 	},
 	stops(doc): Stop {
 		const stopDoc: Stop = <any> doc;
+		// @ts-ignore
 		stopDoc._id = stop(stopDoc);
 		stopDoc.stop_lat = parseFloat(doc.stop_lat);
 		stopDoc.stop_lon = parseFloat(doc.stop_lon);
