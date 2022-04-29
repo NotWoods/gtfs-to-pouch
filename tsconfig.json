@@ -1,26 +1,18 @@
 {
-	"compilerOptions": {
-		"strict": true,
-		"skipLibCheck": true,
-		"noImplicitAny": false,
-		"noImplicitReturns": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"suppressImplicitAnyIndexErrors": true,
-		"declaration": true,
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "declaration": true,
 
-		"target": "es2017",
-		"lib": [
-			"es2016", "es2017.object",
-			"dom", "dom.iterable"
-		],
-		"moduleResolution": "node"
-	},
-	"include": [
-		"src/**/*"
-	],
-	"exclude": [
-		"node_modules",
-		"src/__tests__/**/*"
-	]
+    "target": "es2017",
+    "lib": ["es2016", "es2017.object", "dom", "dom.iterable"],
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "src/__tests__/**/*"]
 }

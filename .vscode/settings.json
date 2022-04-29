@@ -1,8 +1,7 @@
 {
-	"files.exclude": {
-		//"dist": true,
-		"es": true,
-		"**/node_modules": false
-	},
-	"terminal.integrated.shell.windows": "C:\\WINDOWS\\Sysnative\\WindowsPowerShell\\v1.0\\powershell.exe"
+  "files.exclude": {
+    "dist": true,
+    "es": true,
+    "**/node_modules": false
+  }
 }
